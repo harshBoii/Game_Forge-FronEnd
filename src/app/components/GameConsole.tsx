@@ -1,6 +1,14 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Crosshair, 
+  Globe2, 
+  Target, 
+  Zap, 
+  Loader2,
+  PlayCircle 
+} from "lucide-react";
 
 export default function GameConsole() {
   const [prompt, setPrompt] = useState("");
@@ -84,7 +92,7 @@ export default function GameConsole() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <SelectInput
               label="Weapon Type"
-              icon="🎯"
+              icon={<Crosshair className="w-4 h-4" />}
               value={weapon}
               onChange={setWeapon}
               options={["Laser", "Bullet", "Fireball", "Slime", "Magic Orb"]}
@@ -92,7 +100,7 @@ export default function GameConsole() {
             />
             <SelectInput
               label="Environment"
-              icon="🌍"
+              icon={<Globe2 className="w-4 h-4" />}
               value={vibe}
               onChange={setVibe}
               options={["Cyberpunk", "Forest", "Desert", "Underwater", "Space"]}
@@ -100,7 +108,7 @@ export default function GameConsole() {
             />
             <SelectInput
               label="Target Entity"
-              icon="🎪"
+              icon={<Target className="w-4 h-4" />}
               value={target}
               onChange={setTarget}
               options={["Bottle", "Monster", "Balloon", "Alien", "Zombie"]}
@@ -117,26 +125,19 @@ export default function GameConsole() {
             className="w-full relative group overflow-hidden rounded-2xl transition-all duration-300
                      disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <div className="absolute inset-0 bg-linear-to-r from-squid-pink via-squid-coral to-squid-teal 
+            <div className="absolute inset-0 bg-linear-to-rrom-squid-pink via-squid-coral to-squid-teal 
                           opacity-100 group-hover:opacity-90 transition-opacity" />
             <div className="relative px-8 py-5 flex items-center justify-center gap-3">
               {loading ? (
                 <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                  />
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
                   <span className="text-white font-semibold text-lg tracking-wide">
                     Generating Your Game...
                   </span>
                 </>
               ) : (
                 <>
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                          d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                  <Zap className="w-5 h-5 text-white" />
                   <span className="text-white font-semibold text-lg tracking-wide">
                     Generate Game
                   </span>
@@ -203,12 +204,7 @@ export default function GameConsole() {
                       ease: "easeInOut"
                     }}
                   >
-                    <svg className="w-24 h-24 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
-                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
-                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <PlayCircle className="w-24 h-24 text-slate-600" strokeWidth={1.5} />
                   </motion.div>
                   <div className="text-center max-w-md">
                     <p className="text-slate-400 text-base font-medium mb-2">
@@ -246,7 +242,7 @@ export default function GameConsole() {
 // Professional Select Component
 interface SelectInputProps {
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   value: string;
   onChange: (value: string) => void;
   options: string[];
@@ -263,7 +259,7 @@ function SelectInput({ label, icon, value, onChange, options, accentColor }: Sel
   return (
     <div>
       <label className="block text-sm font-semibold text-slate-300 mb-4 tracking-wide uppercase items-center gap-2">
-        <span>{icon}</span>
+        {icon}
         <span>{label}</span>
       </label>
       <select
