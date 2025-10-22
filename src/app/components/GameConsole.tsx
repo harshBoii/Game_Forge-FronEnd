@@ -45,7 +45,7 @@ export default function GameConsole() {
         className="text-center mb-16"
       >
         <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight">
-          <span className="bg-gradient-to-r from-squid-pink via-squid-coral to-squid-teal bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-squid-pink via-squid-coral to-squid-teal bg-clip-text text-transparent">
             GameForge AI
           </span>
         </h1>
@@ -59,7 +59,7 @@ export default function GameConsole() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="backdrop-blur-xl bg-white/[0.03] rounded-3xl border border-white/10 
+        className="backdrop-blur-xl bg-white/3 rounded-3xl border border-white/10 
                    shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
       >
         <div className="p-8 md:p-12">
@@ -117,7 +117,7 @@ export default function GameConsole() {
             className="w-full relative group overflow-hidden rounded-2xl transition-all duration-300
                      disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-squid-pink via-squid-coral to-squid-teal 
+            <div className="absolute inset-0 bg-linear-to-r from-squid-pink via-squid-coral to-squid-teal 
                           opacity-100 group-hover:opacity-90 transition-opacity" />
             <div className="relative px-8 py-5 flex items-center justify-center gap-3">
               {loading ? (
@@ -152,7 +152,7 @@ export default function GameConsole() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="mt-8 backdrop-blur-xl bg-white/[0.03] rounded-3xl border border-white/10 
+        className="mt-8 backdrop-blur-xl bg-white/3 rounded-3xl border border-white/10 
                    shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
       >
         {/* Window Header */}
@@ -262,7 +262,7 @@ function SelectInput({ label, icon, value, onChange, options, accentColor }: Sel
 
   return (
     <div>
-      <label className="block text-sm font-semibold text-slate-300 mb-4 tracking-wide uppercase flex items-center gap-2">
+      <label className="block text-sm font-semibold text-slate-300 mb-4 tracking-wide uppercase items-center gap-2">
         <span>{icon}</span>
         <span>{label}</span>
       </label>
@@ -274,7 +274,7 @@ function SelectInput({ label, icon, value, onChange, options, accentColor }: Sel
                    focus:outline-none focus:ring-2 transition-all duration-300
                    backdrop-blur-sm ${accentClasses[accentColor]}
                    bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e')] 
-                   bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat pr-12`}
+                   bg-size-[1.25rem] bg-position-[right_1rem_center] bg-no-repeat pr-12`}
       >
         {options.map((option) => (
           <option key={option} value={option} className="bg-slate-900">

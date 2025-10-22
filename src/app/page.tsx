@@ -15,7 +15,7 @@ export default function Page() {
       </Suspense>
       <main className="min-h-screen relative overflow-hidden">
         {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0e1a] via-[#1a1625] to-[#0f1419]" />
+        <div className="absolute inset-0 bg-linear-to-br from-squid-dark via-[#1a1625] to-[#0f1419]" />
         
         {/* Ambient Effects */}
         <div className="absolute top-20 -left-40 w-[500px] h-[500px] bg-squid-pink/5 rounded-full blur-[100px]" />
