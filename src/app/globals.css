@@ -1,26 +1,43 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* 🎨 Color Palette */
+  --color-arcade-red: #ff0000;
+  --color-arcade-yellow: #ffdd00;
+  --color-arcade-black: #0b0b0b;
+
+  /* ✨ Shadows */
+  --shadow-arcade-glow: 0 0 20px rgba(255, 0, 0, 0.8);
+  --shadow-yellow-glow: 0 0 15px rgba(255, 221, 0, 0.7);
+
+  /* 🅰️ Fonts */
+  --font-pixel: 'Press Start 2P', cursive;
+  --animate-bounce-slow: bounce 2s infinite;
+  --radius-xl: 1rem;
+  --ease-arcade: cubic-bezier(0.76, 0, 0.24, 1);
+
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-pixel);
+  background: linear-gradient(135deg, var(--color-arcade-black), #1a1a1a);
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+textarea,
+select,
+button {
+  font-family: var(--font-pixel);
+}
+
+.shadow-arcadeGlow {
+  box-shadow: var(--shadow-arcade-glow);
+}
+.shadow-yellowGlow {
+  box-shadow: var(--shadow-yellow-glow);
 }
