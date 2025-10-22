@@ -3,22 +3,17 @@
 @import "tailwindcss";
 
 @theme {
-  /* 🎨 Color Palette */
-  --color-arcade-red: #ff0000;
-  --color-arcade-yellow: #ffdd00;
-  --color-arcade-black: #0b0b0b;
-
-  /* ✨ Shadows */
-  --shadow-arcade-glow: 0 0 20px rgba(255, 0, 0, 0.8);
-  --shadow-yellow-glow: 0 0 15px rgba(255, 221, 0, 0.7);
-
-  /* 🅰️ Fonts */
-  --font-pixel: 'Press Start 2P', cursive;
-  --animate-bounce-slow: bounce 2s infinite;
-  --radius-xl: 1rem;
-  --ease-arcade: cubic-bezier(0.76, 0, 0.24, 1);
-
+  --color-squid-pink: #f7086d;
+  --color-squid-coral: #fc946c;
+  --color-squid-teal: #4ecdc4;
+  --color-squid-dark: #0a0e1a;
+  --color-squid-grey: #b8a8b0;
+  
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* Inter Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 html,
 body {
   height: 100%;

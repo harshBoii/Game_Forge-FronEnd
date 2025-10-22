@@ -7,15 +7,22 @@ const ArcadeParticles = dynamic(() => import("./components/Prtcls"), {
   ssr: false,
 });
 
-
 export default function Page() {
   return (
     <>
       <Suspense fallback={null}>
-                <ArcadeParticles />
+        <ArcadeParticles />
       </Suspense>
-      <main className="min-h-screen bg-arcade-black flex items-center justify-center relative">
-        <div className="z-10 flex flex-col items-center justify-center">
+      <main className="min-h-screen relative overflow-hidden">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0e1a] via-[#1a1625] to-[#0f1419]" />
+        
+        {/* Ambient Effects */}
+        <div className="absolute top-20 -left-40 w-[500px] h-[500px] bg-squid-pink/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-20 -right-40 w-[500px] h-[500px] bg-squid-teal/5 rounded-full blur-[100px]" />
+        
+        {/* Content */}
+        <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
           <GameConsole />
         </div>
       </main>

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function GameConsole() {
   const [prompt, setPrompt] = useState("");
@@ -36,110 +36,252 @@ export default function GameConsole() {
   };
 
   return (
-    <div className="max-w-5xl w-full px-4 text-center">
-      {/* Title */}
-      <motion.h1
-        initial={{ y: -30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+    <div className="w-full max-w-7xl mx-auto">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-4xl md:text-5xl text-arcade-yellow drop-shadow-[0_0_20px_#ffdd00] mb-4"
+        className="text-center mb-16"
       >
-        ⚡ GameForge AI ⚡
-      </motion.h1>
+        <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight">
+          <span className="bg-gradient-to-r from-squid-pink via-squid-coral to-squid-teal bg-clip-text text-transparent">
+            GameForge AI
+          </span>
+        </h1>
+        <p className="text-slate-400 text-base md:text-lg font-light tracking-wide max-w-2xl mx-auto">
+          Transform your ideas into playable games using artificial intelligence
+        </p>
+      </motion.div>
 
-      <p className="text-xs text-gray-400 mb-8">
-        Type your dream mini-game idea & customize it below 👇
-      </p>
-
-      {/* Prompt Input */}
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="💭 Example: A cat flying through pipes like Flappy Bird..."
-        className="w-full h-32 p-4 bg-black border-4 border-arcade-red text-arcade-yellow rounded-lg 
-                   focus:outline-none focus:ring-4 focus:ring-arcade-red shadow-arcadeGlow placeholder:text-gray-500 text-xs"
-      />
-
-      {/* Customization Controls */}
-      <div className="flex flex-col md:flex-row justify-center items-center gap-6 mt-8 text-xs">
-        <div>
-          <label className="block mb-1 text-arcade-yellow">🔫 Weapon</label>
-          <select
-            value={weapon}
-            onChange={(e) => setWeapon(e.target.value)}
-            className="bg-black border-2 border-arcade-yellow text-white px-3 py-2 rounded shadow-yellowGlow"
-          >
-            <option>Laser</option>
-            <option>Bullet</option>
-            <option>Fireball</option>
-            <option>Slime</option>
-            <option>Magic Orb</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block mb-1 text-arcade-yellow">🌆 Vibe</label>
-          <select
-            value={vibe}
-            onChange={(e) => setVibe(e.target.value)}
-            className="bg-black border-2 border-arcade-yellow text-white px-3 py-2 rounded shadow-yellowGlow"
-          >
-            <option>Cyberpunk</option>
-            <option>Forest</option>
-            <option>Desert</option>
-            <option>Underwater</option>
-            <option>Space</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block mb-1 text-arcade-yellow">🎯 Target</label>
-          <select
-            value={target}
-            onChange={(e) => setTarget(e.target.value)}
-            className="bg-black border-2 border-arcade-yellow text-white px-3 py-2 rounded shadow-yellowGlow"
-          >
-            <option>Bottle</option>
-            <option>Monster</option>
-            <option>Balloon</option>
-            <option>Alien</option>
-            <option>Zombie</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Generate Button */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={generateGame}
-        disabled={loading}
-        className="mt-8 bg-arcade-red text-white font-bold px-6 py-3 rounded-md shadow-arcadeGlow 
-                   hover:shadow-yellowGlow transition-all border-2 border-arcade-yellow"
+      {/* Main Card */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="backdrop-blur-xl bg-white/[0.03] rounded-3xl border border-white/10 
+                   shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
       >
-        {loading ? "⚙️ Generating..." : "🚀 Generate Game"}
-      </motion.button>
+        <div className="p-8 md:p-12">
+          {/* Game Concept Input */}
+          <div className="mb-10">
+            <label className="block text-sm font-semibold text-slate-300 mb-4 tracking-wide uppercase">
+              Game Concept
+            </label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe your game idea here... (e.g., A space shooter where you defend Earth from asteroids)"
+              className="w-full h-40 px-6 py-5 bg-slate-900/60 border border-slate-700/50 
+                       text-white rounded-2xl text-base leading-relaxed
+                       focus:outline-none focus:border-squid-teal focus:ring-2 focus:ring-squid-teal/30
+                       placeholder:text-slate-500 transition-all duration-300 resize-none
+                       backdrop-blur-sm"
+            />
+          </div>
 
-      {/* Game Preview */}
-      <div className="mt-10 w-full h-[600px] bg-black border-4 border-arcade-yellow rounded-lg overflow-hidden shadow-yellowGlow">
-        {html ? (
-          <iframe
-            srcDoc={html}
-            sandbox="allow-scripts"
-            className="w-full h-full"
-            title="Game Preview"
-          />
-        ) : (
-          <p className="text-arcade-yellow mt-56 text-xs">
-            👾 Your game will appear here 👾
-          </p>
-        )}
-      </div>
+          {/* Configuration Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <SelectInput
+              label="Weapon Type"
+              icon="🎯"
+              value={weapon}
+              onChange={setWeapon}
+              options={["Laser", "Bullet", "Fireball", "Slime", "Magic Orb"]}
+              accentColor="pink"
+            />
+            <SelectInput
+              label="Environment"
+              icon="🌍"
+              value={vibe}
+              onChange={setVibe}
+              options={["Cyberpunk", "Forest", "Desert", "Underwater", "Space"]}
+              accentColor="coral"
+            />
+            <SelectInput
+              label="Target Entity"
+              icon="🎪"
+              value={target}
+              onChange={setTarget}
+              options={["Bottle", "Monster", "Balloon", "Alien", "Zombie"]}
+              accentColor="teal"
+            />
+          </div>
+
+          {/* Generate Button */}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={generateGame}
+            disabled={loading || !prompt.trim()}
+            className="w-full relative group overflow-hidden rounded-2xl transition-all duration-300
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-squid-pink via-squid-coral to-squid-teal 
+                          opacity-100 group-hover:opacity-90 transition-opacity" />
+            <div className="relative px-8 py-5 flex items-center justify-center gap-3">
+              {loading ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                  />
+                  <span className="text-white font-semibold text-lg tracking-wide">
+                    Generating Your Game...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span className="text-white font-semibold text-lg tracking-wide">
+                    Generate Game
+                  </span>
+                </>
+              )}
+            </div>
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Preview Window */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="mt-8 backdrop-blur-xl bg-white/[0.03] rounded-3xl border border-white/10 
+                   shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden"
+      >
+        {/* Window Header */}
+        <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3 bg-slate-900/30">
+          <div className="flex gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500/80" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+            <div className="w-3 h-3 rounded-full bg-green-500/80" />
+          </div>
+          <span className="text-slate-400 text-sm font-medium tracking-wide">
+            Live Preview
+          </span>
+        </div>
+
+        {/* Preview Content */}
+        <div className="p-6">
+          <div className="w-full h-[650px] bg-slate-900/40 rounded-2xl overflow-hidden 
+                        border border-slate-700/30 relative">
+            <AnimatePresence mode="wait">
+              {html ? (
+                <motion.iframe
+                  key="game-iframe"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  srcDoc={html}
+                  sandbox="allow-scripts"
+                  className="w-full h-full bg-white"
+                  title="Generated Game Preview"
+                />
+              ) : (
+                <motion.div
+                  key="placeholder"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full h-full flex flex-col items-center justify-center gap-6 p-8"
+                >
+                  <motion.div
+                    animate={{ 
+                      y: [0, -10, 0],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ 
+                      duration: 4, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <svg className="w-24 h-24 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </motion.div>
+                  <div className="text-center max-w-md">
+                    <p className="text-slate-400 text-base font-medium mb-2">
+                      Your game will appear here
+                    </p>
+                    <p className="text-slate-500 text-sm">
+                      Describe your game concept above and click generate to begin
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Footer */}
-      <footer className="mt-10 text-arcade-yellow text-[10px] opacity-80">
-        Built by <span className="text-arcade-red">Harsh</span> 💥 Powered by AI
-      </footer>
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="mt-12 text-center pb-8"
+      >
+        <p className="text-slate-500 text-sm font-light tracking-wide">
+          Built by{" "}
+          <span className="text-squid-teal font-medium">Harsh</span>
+          {" · "}
+          <span className="text-slate-600">Powered by Artificial Intelligence</span>
+        </p>
+      </motion.footer>
+    </div>
+  );
+}
+
+// Professional Select Component
+interface SelectInputProps {
+  label: string;
+  icon: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  accentColor: "pink" | "coral" | "teal";
+}
+
+function SelectInput({ label, icon, value, onChange, options, accentColor }: SelectInputProps) {
+  const accentClasses = {
+    pink: "focus:border-squid-pink focus:ring-squid-pink/30",
+    coral: "focus:border-squid-coral focus:ring-squid-coral/30",
+    teal: "focus:border-squid-teal focus:ring-squid-teal/30",
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-slate-300 mb-4 tracking-wide uppercase flex items-center gap-2">
+        <span>{icon}</span>
+        <span>{label}</span>
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full px-5 py-4 bg-slate-900/60 border border-slate-700/50 text-white rounded-xl
+                   text-base font-medium cursor-pointer appearance-none
+                   focus:outline-none focus:ring-2 transition-all duration-300
+                   backdrop-blur-sm ${accentClasses[accentColor]}
+                   bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e')] 
+                   bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat pr-12`}
+      >
+        {options.map((option) => (
+          <option key={option} value={option} className="bg-slate-900">
+            {option}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
