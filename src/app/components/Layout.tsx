@@ -33,6 +33,8 @@ export default function StarcadeLayout() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notification, setNotification] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const BACKEND = "https://game-forge-backend.onrender.com";
@@ -125,6 +127,15 @@ export default function StarcadeLayout() {
     { label: "AI Builder", icon: BrainCircuit },
     { label: "Explore", icon: Compass },
   ];
+    useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 768);
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }
+    }, []);
 
   return (
     <motion.div
@@ -171,7 +182,7 @@ export default function StarcadeLayout() {
       <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         {/* SIDEBAR */}
         <AnimatePresence>
-          {(sidebarOpen || window.innerWidth >= 768) && (
+            {isClient && (sidebarOpen || !isMobile) && (
             <motion.aside
               key="sidebar"
               initial={{ x: -200, opacity: 0 }}
