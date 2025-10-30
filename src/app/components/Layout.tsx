@@ -2,10 +2,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home, Gamepad2, BrainCircuit, Compass } from "lucide-react";
+
+
 // Simple pixel spinner
 const LoadingSpinner = () => (
   <motion.div
-    className="w-12 h-12 border-4 border-(--color-primary) border-t-transparent rounded-full"
+    className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full"
     animate={{ rotate: 360 }}
     transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
   />
@@ -107,23 +109,23 @@ export default function StarcadeLayout() {
   const handleAnswerChange = (question: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [question]: value }));
   };
-  const menuItems = [
-  { label: "Home", icon: Home },
-  { label: "My Games", icon: Gamepad2 },
-  { label: "AI Builder", icon: BrainCircuit },
-  { label: "Explore", icon: Compass },
-];
 
+    const menuItems = [
+    { label: "Home", icon: Home },
+    { label: "My Games", icon: Gamepad2 },
+    { label: "AI Builder", icon: BrainCircuit },
+    { label: "Explore", icon: Compass },
+    ];
   return (
     <motion.div
-      className="flex flex-col h-screen bg-(--color-bg-dark) text-white overflow-hidden"
+      className="flex flex-col h-screen bg-[var(--color-bg-dark)] text-white overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
       {/* === NAVBAR === */}
       <motion.nav
-        className="flex items-center justify-between px-8 py-3 bg-(--color-primary)ow-lg title-font"
+        className="flex items-center justify-between px-8 py-3 bg-[var(--color-primary)] shadow-lg title-font"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 80 }}
@@ -149,13 +151,14 @@ export default function StarcadeLayout() {
       {/* === MAIN LAYOUT === */}
       <div className="flex flex-1 overflow-hidden">
         {/* LEFT MENU */}
+                
         <motion.aside
-        className="w-1/6 panel p-6 flex flex-col gap-3 pixel-text text-gray-300 border-r border-(--color-border)"
+        className="w-1/6 panel p-6 flex flex-col gap-3 pixel-text text-gray-300 border-r border-[var(--color-border)]"
         initial={{ x: -120, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 70 }}
         >
-        <h2 className="text-lg text-(--color-primary) mb-3 tracking-wide">MENU</h2>
+        <h2 className="text-lg text-[var(--color-primary)] mb-3 tracking-wide">MENU</h2>
 
         <ul className="space-y-3">
             {menuItems.map(({ label, icon: Icon }, i) => (
@@ -171,7 +174,7 @@ export default function StarcadeLayout() {
             >
                 {/* FLICKERING ICON */}
                 <motion.div
-                className="text-(--color-primary) group-hover:text-white"
+                className="text-[var(--color-primary)] group-hover:text-white"
                 animate={{ opacity: [1, 0.85, 1, 0.7, 1] }}
                 transition={{
                     duration: 2,
@@ -200,10 +203,11 @@ export default function StarcadeLayout() {
             ))}
         </ul>
         </motion.aside>
+
         {/* CENTER GAME PREVIEW */}
-        <main className="flex-1 flex items-center justify-center bg-[#111] border-x border-(--color-border) relative overflow-hidden">
+        <main className="flex-1 flex items-center justify-center bg-[#111] border-x border-[var(--color-border)] relative overflow-hidden">
           <motion.div
-            className="absolute inset-0 bg-linear-to-br from-[#C90D0C20] to-transparent pointer-events-none"
+            className="absolute inset-0 bg-gradient-to-br from-[#C90D0C20] to-transparent pointer-events-none"
             animate={{ opacity: [0.2, 0.4, 0.2] }}
             transition={{ duration: 3, repeat: Infinity }}
           />
@@ -242,10 +246,10 @@ export default function StarcadeLayout() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className={`max-w-[90%] p-3 rounded-md wrap-break-word ${
+                  className={`max-w-[90%] p-3 rounded-md break-words ${
                     m.from === "ai"
-                      ? "bg-(--color-border) text-gray-200 self-start"
-                      : "bg-(--color-primary) text-white self-end"
+                      ? "bg-[var(--color-border)] text-gray-200 self-start"
+                      : "bg-[var(--color-primary)] text-white self-end"
                   } pixel-text text-[10px] leading-relaxed`}
                 >
                   {m.text}
@@ -256,12 +260,12 @@ export default function StarcadeLayout() {
           </div>
 
           {/* Chat Input */}
-          <div className="p-4 border-t border-(--color-border) flex">
+          <div className="p-4 border-t border-[var(--color-border)] flex">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your idea..."
-              className="flex-1 bg-[#222] text-white rounded-l-md px-3 py-2 outline-none border border-[#515151] focus:border-(--color-primary) pixel-text text-xs"
+              className="flex-1 bg-[#222] text-white rounded-l-md px-3 py-2 outline-none border border-[#515151] focus:border-[var(--color-primary)] pixel-text text-xs"
             />
             <motion.button
               onClick={handleSend}
@@ -281,9 +285,6 @@ export default function StarcadeLayout() {
               {loading ? "..." : "SEND"}
             </motion.button>
           </div>
-
-
-          
         </motion.aside>
       </div>
 
@@ -303,12 +304,12 @@ export default function StarcadeLayout() {
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", damping: 20 }}
             >
-              <h2 className="title-font text-3xl mb-6 text-(--color-primary)">
+              <h2 className="title-font text-3xl mb-6 text-[var(--color-primary)]">
                 Customize Your Game
               </h2>
               <form className="space-y-6">
                 {questions.map((q, i) => (
-                  <div key={i} className="border-b border-(--color-border) pb-4">
+                  <div key={i} className="border-b border-[var(--color-border)] pb-4">
                     <p className="text-lg mb-3">{q.question}</p>
                     {q.options?.map((opt: string, idx: number) => (
                       <label
