@@ -1,8 +1,15 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Gamepad2, BrainCircuit, Compass } from "lucide-react";
-
+import {
+  Home,
+  Gamepad2,
+  BrainCircuit,
+  Compass,
+  Zap,
+  X,
+  Menu,
+} from "lucide-react";
 
 // Simple pixel spinner
 const LoadingSpinner = () => (
@@ -24,6 +31,8 @@ export default function StarcadeLayout() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [notification, setNotification] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const BACKEND = "https://game-forge-backend.onrender.com";
@@ -110,30 +119,40 @@ export default function StarcadeLayout() {
     setAnswers((prev) => ({ ...prev, [question]: value }));
   };
 
-    const menuItems = [
+  const menuItems = [
     { label: "Home", icon: Home },
     { label: "My Games", icon: Gamepad2 },
     { label: "AI Builder", icon: BrainCircuit },
     { label: "Explore", icon: Compass },
-    ];
+  ];
+
   return (
     <motion.div
-      className="flex flex-col h-screen bg-[var(--color-bg-dark)] text-white overflow-hidden"
+      className="flex flex-col h-screen bg-[var(--color-bg-dark)] text-white overflow-hidden md:overflow-hidden overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
       {/* === NAVBAR === */}
       <motion.nav
-        className="flex items-center justify-between px-8 py-3 bg-[var(--color-primary)] shadow-lg title-font"
+        className="flex items-center justify-between px-6 md:px-8 py-3 bg-[var(--color-primary)] shadow-lg title-font"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 80 }}
       >
-        <h1 className="text-4xl font-bold tracking-widest drop-shadow-lg">
-          STARCADE <span className="text-[#ffffffcc]">AI</span>
-        </h1>
-        <div className="flex gap-4 text-sm uppercase pixel-text">
+        <div className="flex items-center gap-4">
+          <button
+            className="md:hidden text-white"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <Menu size={24} />
+          </button>
+          <h1 className="text-2xl md:text-4xl font-bold tracking-widest drop-shadow-lg">
+            STARCADE <span className="text-[#ffffffcc]">AI</span>
+          </h1>
+        </div>
+
+        <div className="hidden md:flex gap-4 text-sm uppercase pixel-text">
           {["Docs", "Studio", "Support"].map((link) => (
             <motion.a
               key={link}
@@ -149,63 +168,77 @@ export default function StarcadeLayout() {
       </motion.nav>
 
       {/* === MAIN LAYOUT === */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* LEFT MENU */}
-                
-        <motion.aside
-        className="w-1/6 panel p-6 flex flex-col gap-3 pixel-text text-gray-300 border-r border-[var(--color-border)]"
-        initial={{ x: -120, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 70 }}
-        >
-        <h2 className="text-lg text-[var(--color-primary)] mb-3 tracking-wide">MENU</h2>
-
-        <ul className="space-y-3">
-            {menuItems.map(({ label, icon: Icon }, i) => (
-            <motion.li
-                key={label}
-                className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-[#1a1a1a] transition-all"
-                whileHover={{
-                scale: 1.05,
-                color: "#fff",
-                textShadow: "0 0 12px #C90D0C",
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+        {/* SIDEBAR */}
+        <AnimatePresence>
+          {(sidebarOpen || window.innerWidth >= 768) && (
+            <motion.aside
+              key="sidebar"
+              initial={{ x: -200, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -200, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 70 }}
+              className="fixed md:static z-50 top-0 left-0 h-full md:h-auto w-2/3 sm:w-1/3 md:w-1/6 bg-[#111] p-6 flex flex-col gap-3 pixel-text text-gray-300 border-r border-[var(--color-border)]"
             >
-                {/* FLICKERING ICON */}
-                <motion.div
-                className="text-[var(--color-primary)] group-hover:text-white"
-                animate={{ opacity: [1, 0.85, 1, 0.7, 1] }}
-                transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    ease: "easeInOut",
-                    delay: i * 0.2, // slight stagger
-                }}
-                whileHover={{
-                    rotate: 8,
-                    scale: 1.2,
-                    textShadow: "0 0 20px #C90D0C",
-                }}
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg text-[var(--color-primary)] tracking-wide">
+                  MENU
+                </h2>
+                <button
+                  className="md:hidden text-gray-300 hover:text-white"
+                  onClick={() => setSidebarOpen(false)}
                 >
-                <Icon size={20} />
-                </motion.div>
+                  <X size={18} />
+                </button>
+              </div>
 
-                <motion.span
-                className="group-hover:text-white transition-colors"
-                animate={{ opacity: [1, 0.95, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                >
-                {label}
-                </motion.span>
-            </motion.li>
-            ))}
-        </ul>
-        </motion.aside>
+              <ul className="space-y-3">
+                {menuItems.map(({ label, icon: Icon }, i) => (
+                  <motion.li
+                    key={label}
+                    className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-[#1a1a1a] transition-all"
+                    whileHover={{
+                      scale: 1.05,
+                      color: "#fff",
+                      textShadow: "0 0 12px #C90D0C",
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <motion.div
+                      className="text-[var(--color-primary)] group-hover:text-white"
+                      animate={{ opacity: [1, 0.85, 1, 0.7, 1] }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatType: "loop",
+                        ease: "easeInOut",
+                        delay: i * 0.2,
+                      }}
+                      whileHover={{
+                        rotate: 8,
+                        scale: 1.2,
+                        textShadow: "0 0 20px #C90D0C",
+                      }}
+                    >
+                      <Icon size={20} />
+                    </motion.div>
 
-        {/* CENTER GAME PREVIEW */}
-        <main className="flex-1 flex items-center justify-center bg-[#111] border-x border-[var(--color-border)] relative overflow-hidden">
+                    <motion.span
+                      className="group-hover:text-white transition-colors"
+                      animate={{ opacity: [1, 0.95, 1] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                    >
+                      {label}
+                    </motion.span>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
+        {/* GAME PREVIEW */}
+        <main className="flex-1 flex items-center justify-center bg-[#111] border-y md:border-x md:border-y-0 border-[var(--color-border)] relative overflow-hidden">
           <motion.div
             className="absolute inset-0 bg-gradient-to-br from-[#C90D0C20] to-transparent pointer-events-none"
             animate={{ opacity: [0.2, 0.4, 0.2] }}
@@ -217,22 +250,22 @@ export default function StarcadeLayout() {
           ) : gameHTML ? (
             <motion.iframe
               srcDoc={gameHTML}
-              className="w-[800px] h-[600px] glow-border rounded-sm"
+              className="w-[90vw] md:w-[800px] h-[60vh] md:h-[600px] glow-border rounded-sm"
               title="StarCade Game Preview"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", damping: 15 }}
             />
           ) : (
-            <div className="w-[800px] h-[600px] glow-border flex items-center justify-center pixel-text text-gray-400">
+            <div className="w-[90vw] md:w-[800px] h-[60vh] md:h-[600px] glow-border flex items-center justify-center pixel-text text-gray-400 text-xs md:text-base">
               🎮 Your game will appear here
             </div>
           )}
         </main>
 
-        {/* RIGHT CHAT PANEL */}
+        {/* CHAT PANEL */}
         <motion.aside
-          className="w-1/4 panel flex flex-col"
+          className="w-full md:w-1/4 panel flex flex-col mt-4 md:mt-0"
           initial={{ x: 120, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 70 }}
@@ -259,7 +292,77 @@ export default function StarcadeLayout() {
             <div ref={chatEndRef} />
           </div>
 
-          {/* Chat Input */}
+          {/* WAKE BUTTON + NOTIFICATION */}
+          <motion.div className="relative">
+            <motion.button
+              onClick={async () => {
+                try {
+                  const res = await fetch(`${BACKEND}/`);
+                  const data = await res.json();
+
+                  setMessages((prev) => [
+                    ...prev,
+                    { from: "ai", text: `⚡ ${data.message}` },
+                  ]);
+                  setNotification(data.message);
+                } catch (err) {
+                  const errorMsg = "❌ Couldn’t reach backend. Try again soon.";
+                  setMessages((prev) => [...prev, { from: "ai", text: errorMsg }]);
+                  setNotification(errorMsg);
+                }
+              }}
+              className="flex items-center justify-center gap-2 mb-3 mx-2 md:mx-4 py-2 rounded-md text-xs md:text-sm font-bold pixel-text uppercase text-white w-[calc(100%-1rem)] md:w-[calc(100%-2rem)]"
+              style={{
+                background: "linear-gradient(90deg, #C90D0C, #a30b0b)",
+                border: "2px solid #C90D0C",
+                boxShadow: "0 0 10px #C90D0C88",
+              }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 0 20px #C90D0C",
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Zap size={16} className="text-white" />
+              Wake Me Up
+            </motion.button>
+
+            <AnimatePresence>
+              {notification && (
+                <motion.div
+                  key="notification"
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 150, damping: 18 }}
+                  className="absolute left-1/2 -translate-x-1/2 -top-20 px-4 py-3 rounded-md text-xs font-bold pixel-text text-white flex items-center justify-between w-[90%] shadow-lg border border-[#C90D0C] z-50"
+                  style={{
+                    backgroundColor: "#C90D0C",
+                    boxShadow: "0 0 20px #C90D0C88",
+                  }}
+                >
+                  <motion.span
+                    animate={{ opacity: [0.8, 1, 0.8], scale: [1, 1.01, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="tracking-wide"
+                  >
+                    {notification}
+                  </motion.span>
+
+                  <motion.button
+                    onClick={() => setNotification(null)}
+                    whileHover={{ scale: 1.2, rotate: 90 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="ml-3 text-white/90 hover:text-white"
+                  >
+                    <X size={14} />
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* CHAT INPUT */}
           <div className="p-4 border-t border-[var(--color-border)] flex">
             <input
               value={input}
@@ -288,7 +391,7 @@ export default function StarcadeLayout() {
         </motion.aside>
       </div>
 
-      {/* === MODAL (Questions Form) === */}
+      {/* === MODAL === */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -298,7 +401,7 @@ export default function StarcadeLayout() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="panel w-[700px] max-h-[80vh] overflow-y-auto p-8 rounded-lg"
+              className="panel w-[90vw] md:w-[700px] max-h-[80vh] overflow-y-auto p-6 md:p-8 rounded-lg"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
