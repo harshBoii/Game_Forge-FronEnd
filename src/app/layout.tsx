@@ -1,25 +1,17 @@
 import "./globals.css";
-import { Inter } from 'next/font/google'
+import { Karantina } from "next/font/google";
+
+const karantina = Karantina({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata = {
-  title: "GameForge AI 🎮",
-  description: "AI-Powered Arcade Game Builder by Harsh",
+  title: "StarCade AI",
+  description: "AI-powered game generation by StarCade Studios",
 };
 
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-})
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans">{children}</body>
+    <html lang="en" className={karantina.className}>
+      <body>{children}</body>
     </html>
-  )
+  );
 }

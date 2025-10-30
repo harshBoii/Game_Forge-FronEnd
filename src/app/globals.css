@@ -1,38 +1,74 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Karantina:wght@400;700&family=Press+Start+2P&display=swap');
 
-@theme {
-  --color-squid-pink: #f7086d;
-  --color-squid-coral: #fc946c;
-  --color-squid-teal: #4ecdc4;
-  --color-squid-dark: #0a0e1a;
-  --color-squid-grey: #b8a8b0;
-  
-  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+@layer base {
+  :root {
+    --color-primary: #C90D0C;
+    --color-bg-dark: #0b0b0b;
+    --color-bg-panel: #1A1A1A;
+    --color-text: #FFFFFF;
+    --color-muted: #515151;
+    --color-border: #313131;
+
+    --font-heading: 'Karantina', cursive;
+    --font-body: 'Press Start 2P', monospace;
+  }
+
+  html, body {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  ::selection {
+    background: var(--color-primary);
+    color: white;
+  }
 }
 
-/* Inter Font Import */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-html,
-body {
-  height: 100%;
-  margin: 0;
-  font-family: var(--font-pixel);
-  background: linear-gradient(135deg, var(--color-arcade-black), #1a1a1a);
-  color: white;
-  letter-spacing: 0.5px;
-}
+/* ===========================
+   🎨 Utility Classes
+=========================== */
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-semibold transition-all duration-200;
+  }
 
-textarea,
-select,
-button {
-  font-family: var(--font-pixel);
-}
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+  }
 
-.shadow-arcadeGlow {
-  box-shadow: var(--shadow-arcade-glow);
-}
-.shadow-yellowGlow {
-  box-shadow: var(--shadow-yellow-glow);
+  .btn-primary:hover {
+    filter: brightness(1.15);
+  }
+
+  .panel {
+    background-color: var(--color-bg-panel);
+    border: 1px solid var(--color-border);
+  }
+
+  .glow-border {
+    border: 3px solid var(--color-primary);
+    box-shadow: 0 0 25px rgba(201, 13, 12, 0.5);
+  }
+
+  .pixel-text {
+    font-family: var(--font-body);
+    text-transform: uppercase;
+  }
+
+  .title-font {
+    font-family: var(--font-heading);
+    letter-spacing: 2px;
+  }
 }
