@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { Home, Gamepad2, BrainCircuit, Compass } from "lucide-react";
 // Simple pixel spinner
 const LoadingSpinner = () => (
   <motion.div
@@ -24,7 +24,7 @@ export default function StarcadeLayout() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const BACKEND = "http://127.0.0.1:8000";
+  const BACKEND = "https://game-forge-backend.onrender.com";
 
   async function postJSON(url: string, data: any) {
     const res = await fetch(`${BACKEND}${url}`, {
@@ -107,6 +107,12 @@ export default function StarcadeLayout() {
   const handleAnswerChange = (question: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [question]: value }));
   };
+  const menuItems = [
+  { label: "Home", icon: Home },
+  { label: "My Games", icon: Gamepad2 },
+  { label: "AI Builder", icon: BrainCircuit },
+  { label: "Explore", icon: Compass },
+];
 
   return (
     <motion.div
@@ -144,30 +150,56 @@ export default function StarcadeLayout() {
       <div className="flex flex-1 overflow-hidden">
         {/* LEFT MENU */}
         <motion.aside
-          className="w-1/6 panel p-6 flex flex-col gap-3 pixel-text text-gray-300"
-          initial={{ x: -120, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 70 }}
+        className="w-1/6 panel p-6 flex flex-col gap-3 pixel-text text-gray-300 border-r border-(--color-border)"
+        initial={{ x: -120, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 70 }}
         >
-          <h2 className="text-lg text-(--color-primary) mb-3">MENU</h2>
-          <ul className="space-y-2">
-            {["Dashboard", "My Games", "AI Builder", "Settings"].map((item) => (
-              <motion.li
-                key={item}
-                whileHover={{
-                  scale: 1.05,
-                  color: "#fff",
-                  textShadow: "0 0 10px #C90D0C",
-                }}
-                transition={{ duration: 0.2 }}
-                className="cursor-pointer"
-              >
-                {item}
-              </motion.li>
-            ))}
-          </ul>
-        </motion.aside>
+        <h2 className="text-lg text-(--color-primary) mb-3 tracking-wide">MENU</h2>
 
+        <ul className="space-y-3">
+            {menuItems.map(({ label, icon: Icon }, i) => (
+            <motion.li
+                key={label}
+                className="flex items-center gap-3 cursor-pointer group p-2 rounded-lg hover:bg-[#1a1a1a] transition-all"
+                whileHover={{
+                scale: 1.05,
+                color: "#fff",
+                textShadow: "0 0 12px #C90D0C",
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+                {/* FLICKERING ICON */}
+                <motion.div
+                className="text-(--color-primary) group-hover:text-white"
+                animate={{ opacity: [1, 0.85, 1, 0.7, 1] }}
+                transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    ease: "easeInOut",
+                    delay: i * 0.2, // slight stagger
+                }}
+                whileHover={{
+                    rotate: 8,
+                    scale: 1.2,
+                    textShadow: "0 0 20px #C90D0C",
+                }}
+                >
+                <Icon size={20} />
+                </motion.div>
+
+                <motion.span
+                className="group-hover:text-white transition-colors"
+                animate={{ opacity: [1, 0.95, 1] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                >
+                {label}
+                </motion.span>
+            </motion.li>
+            ))}
+        </ul>
+        </motion.aside>
         {/* CENTER GAME PREVIEW */}
         <main className="flex-1 flex items-center justify-center bg-[#111] border-x border-(--color-border) relative overflow-hidden">
           <motion.div
@@ -249,6 +281,9 @@ export default function StarcadeLayout() {
               {loading ? "..." : "SEND"}
             </motion.button>
           </div>
+
+
+          
         </motion.aside>
       </div>
 
