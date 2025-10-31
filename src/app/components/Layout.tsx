@@ -37,7 +37,7 @@ export default function StarcadeLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const BACKEND = "https://game-forge-backend.onrender.com";
+  const BACKEND = "http://127.0.0.1:8000";
 
   async function postJSON(url: string, data: any) {
     const res = await fetch(`${BACKEND}${url}`, {
@@ -158,7 +158,10 @@ export default function StarcadeLayout() {
           >
             <Menu size={24} />
           </button>
-          <h1 className="text-2xl md:text-4xl font-bold tracking-widest drop-shadow-lg">
+           <h1 className="text-2xl md:text-4xl font-bold tracking-widest drop-shadow-lg">
+            <span>
+              <img src="logo.svg" alt="cat" className="inline-block w-10 h-10 mr-2 " />
+            </span>
             STARCADE <span className="text-[#ffffffcc]">AI</span>
           </h1>
         </div>
