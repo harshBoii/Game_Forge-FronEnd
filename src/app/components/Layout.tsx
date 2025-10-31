@@ -37,7 +37,7 @@ export default function StarcadeLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const BACKEND = "https://game-forge-backend.onrender.com/";
+  const BACKEND = "https://game-forge-backend.onrender.com";
 
   async function postJSON(url: string, data: any) {
     const res = await fetch(`${BACKEND}${url}`, {
