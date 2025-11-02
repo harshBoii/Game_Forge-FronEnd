@@ -61,18 +61,22 @@ const LoadingSpinner = () => (
 );
 
 // ✅ GPU-OPTIMIZED: Fixed character wheel alignment
-export const CharacterWheel = ({ selectedId, onSelect }: any) => {
+interface CharacterWheelProps {
+  selectedId: string;
+  onSelect: (characterId: string) => void;
+}
+
+export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) => {
   const [currentIndex, setCurrentIndex] = useState(1);
-  const [dragX, setDragX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
-    const threshold = 80;
+    const dragDistance = info.offset.x;
     let nextIndex = currentIndex;
 
-    if (info.offset.x > threshold && currentIndex > 0) {
+    if (dragDistance > 80 && currentIndex > 0) {
       nextIndex = currentIndex - 1;
-    } else if (info.offset.x < -threshold && currentIndex < CHARACTERS.length - 1) {
+    } else if (dragDistance < -80 && currentIndex < CHARACTERS.length - 1) {
       nextIndex = currentIndex + 1;
     }
 
@@ -80,88 +84,60 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
       setCurrentIndex(nextIndex);
       onSelect(CHARACTERS[nextIndex].id);
     }
-    setDragX(0);
-    setIsDragging(false);
   };
 
   const char = CHARACTERS[currentIndex];
 
   return (
     <motion.div
-      className="relative w-full max-w-2xl mx-auto select-none flex flex-col items-center justify-center"
+      className="relative w-full max-w-4xl mx-auto select-none flex flex-col items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      {/* Main carousel - Fixed alignment */}
-      <motion.div
+      {/* Main carousel container */}
+      <div
         className="relative w-96 h-96 rounded-full flex items-center justify-center overflow-hidden bg-black/30"
         style={{
           border: `3px solid ${char.color}`,
-          willChange: "box-shadow",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
         }}
       >
-        {/* Character carousel with optimized drag */}
+        {/* Character card - always centered */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={char.id}
+            className="absolute w-80 h-80 rounded-full flex items-center justify-center"
+            style={{
+              background: `linear-gradient(135deg, ${char.color}30, ${char.color}10)`,
+              border: `3px solid ${char.color}`,
+            }}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ type: "spring", stiffness: 250, damping: 30 }}
+          >
+            <img
+              src={char.src}
+              alt={char.name}
+              className="w-64 h-64 object-contain"
+              draggable={false}
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Invisible draggable layer */}
         <motion.div
-          className="absolute inset-0 flex items-center justify-center cursor-grab active:cursor-grabbing"
+          className="absolute inset-0 cursor-grab active:cursor-grabbing"
           drag="x"
-          dragElastic={0.2}
-          dragConstraints={{ left: -200, right: 200 }}
+          dragElastic={0.1}
+          dragConstraints={{ left: -60, right: 60 }}
           onDragEnd={handleDragEnd}
-          onDrag={(e, info) => {
-            setDragX(info.offset.x);
-            setIsDragging(true);
+          style={{
+            touchAction: "pan-y",
+            zIndex: 50,
           }}
-          animate={{
-            x: isDragging ? dragX : 0,
-          }}
-          transition={{
-            type: isDragging ? "inertia" : "spring",
-            stiffness: 200,
-            damping: 30,
-          }}
-          style={{ willChange: "transform" }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={char.id}
-              className="absolute inset-0 flex items-center justify-center"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ type: "spring", stiffness: 200, damping: 25 }}
-              style={{ willChange: "transform" }}
-            >
-              <div
-                className="relative w-80 h-80 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, ${char.color}30, ${char.color}10)`,
-                  border: `3px solid ${char.color}`,
-                  willChange: "auto",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <img
-                  src={char.src}
-                  alt={char.name}
-                  className="w-72 h-72 object-contain flex-shrink-0"
-                  draggable={false}
-                  style={{
-                    willChange: "auto",
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                  }}
-                />
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-      </motion.div>
+        />
+      </div>
 
       {/* Character info - static text */}
       <AnimatePresence mode="wait">
@@ -171,7 +147,7 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.3 }}
         >
           <h3 className="text-3xl font-bold mb-2" style={{ color: char.color }}>
             {char.name}
@@ -188,15 +164,12 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
             className="w-3 h-3 rounded-full cursor-pointer transition-colors"
             style={{
               backgroundColor: i === currentIndex ? c.color : "#444",
-              willChange: "transform",
             }}
             whileHover={{ scale: 1.4 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               setCurrentIndex(i);
               onSelect(c.id);
-              setDragX(0);
-              setIsDragging(false);
             }}
           />
         ))}
@@ -213,6 +186,7 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
     </motion.div>
   );
 };
+
 
 // ✅ GPU-OPTIMIZED: Simple avatar
 const MiniAvatar = ({ characterId }: any) => {
