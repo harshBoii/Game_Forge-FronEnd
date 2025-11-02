@@ -60,7 +60,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// ✅ GPU-OPTIMIZED: Simplified character wheel
+// ✅ GPU-OPTIMIZED: Fixed character wheel alignment
 export const CharacterWheel = ({ selectedId, onSelect }: any) => {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [dragX, setDragX] = useState(0);
@@ -81,6 +81,7 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
       onSelect(CHARACTERS[nextIndex].id);
     }
     setDragX(0);
+    setIsDragging(false);
   };
 
   const char = CHARACTERS[currentIndex];
@@ -92,22 +93,28 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      {/* Main carousel - NO blur, NO glow animations */}
+      {/* Main carousel - Fixed alignment */}
       <motion.div
-        className="relative w-80 h-80 rounded-full flex items-center justify-center overflow-hidden bg-black/30"
+        className="relative w-96 h-96 rounded-full flex items-center justify-center overflow-hidden bg-black/30"
         style={{
           border: `3px solid ${char.color}`,
           willChange: "box-shadow",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {/* Character carousel with optimized drag */}
         <motion.div
-          className="absolute w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
+          className="absolute inset-0 flex items-center justify-center cursor-grab active:cursor-grabbing"
           drag="x"
           dragElastic={0.2}
           dragConstraints={{ left: -200, right: 200 }}
           onDragEnd={handleDragEnd}
-          onDrag={(e, info) => setDragX(info.offset.x)}
+          onDrag={(e, info) => {
+            setDragX(info.offset.x);
+            setIsDragging(true);
+          }}
           animate={{
             x: isDragging ? dragX : 0,
           }}
@@ -121,7 +128,7 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
           <AnimatePresence mode="wait">
             <motion.div
               key={char.id}
-              className="absolute w-full h-full flex items-center justify-center"
+              className="absolute inset-0 flex items-center justify-center"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -129,19 +136,26 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
               style={{ willChange: "transform" }}
             >
               <div
-                className="relative w-72 h-72 rounded-full flex items-center justify-center overflow-hidden"
+                className="relative w-80 h-80 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
                 style={{
                   background: `linear-gradient(135deg, ${char.color}30, ${char.color}10)`,
                   border: `3px solid ${char.color}`,
                   willChange: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <img
                   src={char.src}
                   alt={char.name}
-                  className="w-64 h-64 object-contain"
+                  className="w-72 h-72 object-contain flex-shrink-0"
                   draggable={false}
-                  style={{ willChange: "auto" }}
+                  style={{
+                    willChange: "auto",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                  }}
                 />
               </div>
             </motion.div>
@@ -153,7 +167,7 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={char.id}
-          className="mt-10 text-center"
+          className="mt-12 text-center"
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
@@ -182,6 +196,7 @@ export const CharacterWheel = ({ selectedId, onSelect }: any) => {
               setCurrentIndex(i);
               onSelect(c.id);
               setDragX(0);
+              setIsDragging(false);
             }}
           />
         ))}
@@ -207,19 +222,23 @@ const MiniAvatar = ({ characterId }: any) => {
   return (
     <motion.div
       layout
-      className="relative w-14 h-14 rounded-full flex items-center justify-center overflow-hidden"
+      className="relative w-14 h-14 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
       style={{
         background: `linear-gradient(135deg, ${char.color}, ${char.color}dd)`,
         border: `2px solid ${char.color}`,
         willChange: "transform",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
       whileHover={{ scale: 1.1 }}
     >
       <img
         src={char.src}
         alt={char.name}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain flex-shrink-0"
         draggable={false}
+        style={{ maxWidth: "90%", maxHeight: "90%" }}
       />
     </motion.div>
   );
@@ -558,11 +577,34 @@ export default function StarcadeLayout() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
               >
+                {/* Centered STARCADE AI with red-black gradient */}
                 <motion.div
-                  className="text-center mb-16 z-10 max-w-3xl"
+                  className="absolute top-20 text-center z-20"
                   initial={{ y: -50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
+                >
+                  <motion.h2
+                    className="text-6xl md:text-8xl font-black tracking-tighter mb-2"
+                    style={{
+                      backgroundImage: "linear-gradient(135deg, #C90D0C 0%, #000000 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    STARCADE
+                  </motion.h2>
+                  <motion.p className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C90D0C] to-red-700">
+                    AI
+                  </motion.p>
+                </motion.div>
+
+                <motion.div
+                  className="text-center mb-8 z-10 max-w-3xl mt-32"
+                  initial={{ y: -30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
                 >
                   <motion.div
                     className="inline-flex items-center gap-3 mb-6 px-6 py-3 backdrop-blur-sm bg-white/10 rounded-full"
@@ -577,16 +619,6 @@ export default function StarcadeLayout() {
                     </span>
                   </motion.div>
 
-                  <motion.h2 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#C90D0C] via-[#FFD700] to-[#8B5CF6]">
-                      Welcome to
-                    </span>
-                    <br />
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
-                      StarCade AI
-                    </span>
-                  </motion.h2>
-
                   <motion.p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
                     Choose your AI companion and bring your game ideas to life
                   </motion.p>
@@ -596,7 +628,7 @@ export default function StarcadeLayout() {
                   className="mb-20 z-10 w-full"
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.6, type: "spring", stiffness: 100 }}
+                  transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
                 >
                   <CharacterWheel
                     selectedId={selectedCharacter}
@@ -714,7 +746,7 @@ export default function StarcadeLayout() {
 
               <motion.button
                 onClick={handleSend}
-                className="relative w-14 h-14 font-bold uppercase rounded-xl overflow-hidden flex items-center justify-center"
+                className="relative w-14 h-14 font-bold uppercase rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
                 style={{
                   background: `linear-gradient(135deg, ${
                     CHARACTERS.find((c) => c.id === selectedCharacter)?.color

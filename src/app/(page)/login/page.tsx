@@ -74,10 +74,10 @@ export default function LoginPage() {
       />
 
       {/* Main Container */}
-      <div className="relative z-10 flex w-full h-screen max-h-screen lg:max-h-full lg:h-auto">
+      <div className="relative z-10 flex w-full">
         {/* Left Section - Branding & Design */}
         <motion.div
-          className="hidden lg:flex lg:w-1/2 flex-col justify-center items-start p-16"
+          className="hidden lg:flex lg:w-1/2 flex-col justify-center items-start p-20"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -86,77 +86,80 @@ export default function LoginPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10"
           >
             {/* Logo/Icon */}
-            <motion.div variants={itemVariants} className="flex items-center gap-3">
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Zap className="text-[#C90D0C]" size={32} />
-              </motion.div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#C90D0C] to-[#ff4444] bg-clip-text text-transparent">
-                StarCade
+            <motion.div variants={itemVariants} className="flex items-center gap-4">
+              <img
+                src="/logo.svg"
+                alt="StarCade"
+                className="w-12 h-12 object-contain"
+              />
+              <span className="text-3xl font-black bg-gradient-to-r from-[#C90D0C] to-[#ff4444] bg-clip-text text-transparent">
+                STARCADE
               </span>
             </motion.div>
 
             {/* Tagline */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              <h2 className="text-5xl font-bold leading-tight">
-                Game On,{" "}
+            <motion.div variants={itemVariants} className="space-y-6">
+              <h2 className="text-6xl font-black leading-tight max-w-lg">
+                Your Retro{" "}
                 <span className="bg-gradient-to-r from-[#C90D0C] to-[#ff4444] bg-clip-text text-transparent">
-                  Level Up
-                </span>
+                  Game Engine
+                </span>{" "}
+                Awaits
               </h2>
-              <p className="text-gray-400 text-lg max-w-md">
-                Step into the arcade experience. Compete, conquer, and climb the
-                leaderboards.
+              <p className="text-gray-300 text-lg max-w-md leading-relaxed">
+                No cap, this is the move. Build legendary retro games with AI,
+                drop them in your library, and let the world play your creations.
               </p>
             </motion.div>
 
-            {/* Feature List */}
-            <motion.div variants={itemVariants} className="space-y-3">
-              {["Lightning-fast gameplay", "Real-time multiplayer", "Epic rewards"].map(
-                (feature, idx) => (
-                  <motion.div
-                    key={idx}
-                    className="flex items-center gap-3 text-gray-300"
-                    whileHover={{ x: 10 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  >
-                    <motion.div
-                      className="w-2 h-2 bg-[#C90D0C] rounded-full"
-                      animate={{
-                        scale: [1, 1.5, 1],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        delay: idx * 0.2,
-                      }}
-                    />
-                    <span>{feature}</span>
-                  </motion.div>
-                )
-              )}
+            {/* Feature List - Product Highlights */}
+            <motion.div variants={itemVariants} className="space-y-4">
+              {[
+                {
+                  icon: "⚡",
+                  title: "AI-Powered Creation",
+                  desc: "Describe your game idea, let AI build it instantly",
+                },
+                {
+                  icon: "💾",
+                  title: "Save to Your Library",
+                  desc: "Keep all your fire games in one place",
+                },
+                {
+                  icon: "🎮",
+                  title: "Publish & Share",
+                  desc: "Drop your games for others to play, build your portfolio",
+                },
+              ].map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  className="flex items-start gap-4"
+                  whileHover={{ x: 12 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <span className="text-2xl flex-shrink-0">{feature.icon}</span>
+                  <div>
+                    <p className="font-bold text-white mb-1">{feature.title}</p>
+                    <p className="text-sm text-gray-400">{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
           </motion.div>
         </motion.div>
 
         {/* Right Section - Login Form */}
         <motion.div
-          className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12"
+          className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 min-h-screen lg:min-h-auto"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <motion.div
-            className="w-full max-w-sm p-8 rounded-2xl"
+            className="w-full max-w-md p-10 rounded-3xl"
             style={{
               background:
                 "linear-gradient(145deg, rgba(20,20,20,0.8), rgba(40,20,20,0.4))",
@@ -174,7 +177,7 @@ export default function LoginPage() {
           >
             {/* Form Header */}
             <motion.div
-              className="flex flex-col items-center mb-8"
+              className="flex flex-col items-center mb-10"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
@@ -188,32 +191,32 @@ export default function LoginPage() {
                   ease: "linear",
                 }}
               >
-                <Sparkles className="text-[#C90D0C]" size={28} />
+                <Sparkles className="text-[#C90D0C]" size={32} />
               </motion.div>
               <motion.h1 variants={itemVariants} className="text-3xl font-bold mt-4">
-                Welcome Back
+                Let's Get You In
               </motion.h1>
-              <motion.p variants={itemVariants} className="text-gray-500 text-sm mt-2">
-                Login to continue
+              <motion.p variants={itemVariants} className="text-gray-400 text-sm mt-2">
+                Ready to build something legendary?
               </motion.p>
             </motion.div>
 
             {/* Form */}
             <motion.form
               onSubmit={handleLogin}
-              className="space-y-4"
+              className="space-y-5"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
             >
               {/* Username */}
               <motion.div variants={itemVariants}>
-                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
-                  Username
+                <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
+                  Gamer Tag
                 </label>
                 <motion.input
                   type="text"
-                  placeholder="Enter your username"
+                  placeholder="Your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   onFocus={() => setFocusedField("username")}
@@ -241,12 +244,12 @@ export default function LoginPage() {
 
               {/* Password */}
               <motion.div variants={itemVariants}>
-                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
                   Password
                 </label>
                 <motion.input
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setFocusedField("password")}
@@ -277,15 +280,15 @@ export default function LoginPage() {
                 variants={itemVariants}
                 className="flex justify-between items-center text-xs"
               >
-                <label className="flex items-center gap-2 text-gray-400 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 rounded" />
-                  Remember me
+                <label className="flex items-center gap-2 text-gray-400 cursor-pointer hover:text-gray-300">
+                  <input type="checkbox" className="w-4 h-4 rounded border-white/20" />
+                  Keep me logged in
                 </label>
                 <a
                   href="#"
-                  className="text-[#C90D0C] hover:text-[#ff4444] transition-colors"
+                  className="text-[#C90D0C] hover:text-[#ff4444] transition-colors font-semibold"
                 >
-                  Forgot password?
+                  Reset Pass
                 </a>
               </motion.div>
 
@@ -293,7 +296,7 @@ export default function LoginPage() {
               <motion.button
                 variants={itemVariants}
                 type="submit"
-                className="w-full py-3 mt-6 text-white font-bold uppercase tracking-wider rounded-lg relative overflow-hidden group"
+                className="w-full py-3 mt-8 text-white font-bold uppercase tracking-wider rounded-lg relative overflow-hidden group"
                 style={{
                   background: "linear-gradient(135deg, #C90D0C, #a30b0b)",
                   border: "1px solid rgba(255,255,255,0.2)",
@@ -313,7 +316,7 @@ export default function LoginPage() {
                   }}
                 />
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  <LogIn size={18} /> Login
+                  <LogIn size={18} /> Spawn In
                 </span>
               </motion.button>
             </motion.form>
@@ -321,15 +324,15 @@ export default function LoginPage() {
             {/* Footer */}
             <motion.p
               variants={itemVariants}
-              className="mt-6 text-center text-xs text-gray-600"
+              className="mt-8 text-center text-xs text-gray-500"
             >
-              Don't have an account?{" "}
+              New to the arena?{" "}
               <motion.a
                 href="#"
-                className="text-[#C90D0C] hover:text-[#ff4444] font-semibold transition-colors"
+                className="text-[#C90D0C] hover:text-[#ff4444] font-bold transition-colors"
                 whileHover={{ x: 2 }}
               >
-                Sign up
+                Create Your Account
               </motion.a>
             </motion.p>
           </motion.div>
