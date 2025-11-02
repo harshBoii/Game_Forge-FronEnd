@@ -155,7 +155,7 @@ export default function LoginPage() {
         {/* Right Section - Login Form */}
 
         <motion.div
-          className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 min-h-screen lg:min-h-auto"
+          className="w-full lg:w-1/2 items-center justify-center p-8 lg:p-16 min-h-screen lg:min-h-auto flex-col"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
