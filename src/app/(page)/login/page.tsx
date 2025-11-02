@@ -153,6 +153,14 @@ export default function LoginPage() {
         </motion.div>
 
         {/* Right Section - Login Form */}
+        <div style={{ height: "25vh", width: "15vw", marginBottom: "-5.9vh" }}>
+            <DotLottiePlayer
+                src="https://lottie.host/c3e06dfa-cc75-4bbd-a7e0-4155d5d36b6c/djKOati6RO.lottie"
+                autoplay
+                loop
+            />
+        </div>
+
         <motion.div
           className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 min-h-screen lg:min-h-auto"
           initial={{ opacity: 0, x: 50 }}
@@ -176,13 +184,6 @@ export default function LoginPage() {
               delay: 0.2,
             }}
           >
-            <div style={{ height: "25vh", width: "15vw", marginBottom: "-5.9vh" }}>
-            <DotLottiePlayer
-                src="https://lottie.host/c3e06dfa-cc75-4bbd-a7e0-4155d5d36b6c/djKOati6RO.lottie"
-                autoplay
-                loop
-            />
-            </div>
 
             {/* Form Header */}
             <motion.div
