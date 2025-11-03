@@ -1,17 +1,96 @@
 "use client";
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, LogIn, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, LogIn, UserPlus } from "lucide-react";
 import { DotLottiePlayer } from "@dotlottie/react-player";
 
-export default function LoginPage() {
+export default function AuthPage() {
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ username, password });
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        console.log("✅ Login successful:", data);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        window.location.href = "/dashboard";
+      } else {
+        setError(data.message || "Login failed");
+        console.error("❌ Login failed:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords don't match");
+      console.error("❌ Passwords don't match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, username, password }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        console.log("✅ Signup successful:", data);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        window.location.href = "/dashboard";
+      } else {
+        setError(data.message || "Signup failed");
+        console.error("❌ Signup failed:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Signup error:", error);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setMode(mode === "login" ? "signup" : "login");
+    setError(null);
+    setName("");
+    setUsername("");
+    setPassword("");
+    setConfirmPassword("");
+    setFocusedField(null);
   };
 
   const containerVariants = {
@@ -28,6 +107,12 @@ export default function LoginPage() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  const formVariants = {
+    enter: { x: 20, opacity: 0 },
+    center: { x: 0, opacity: 1 },
+    exit: { x: -20, opacity: 0 },
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black overflow-hidden text-white">
       {/* Background with subtle gradient */}
@@ -39,7 +124,7 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Animated Grid Background - GPU optimized */}
+      {/* Animated Grid Background */}
       <motion.div
         className="absolute inset-0 opacity-[0.03]"
         style={{
@@ -56,7 +141,7 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Red accent glow - subtle, not heavy blur */}
+      {/* Red accent glow */}
       <motion.div
         className="absolute top-1/4 -left-48 w-96 h-96 rounded-full pointer-events-none"
         style={{
@@ -76,7 +161,7 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="relative z-10 flex w-full">
-        {/* Left Section - Branding & Design */}
+        {/* Left Section - Branding */}
         <motion.div
           className="hidden lg:flex lg:w-1/2 flex-col justify-center items-start p-20"
           initial={{ opacity: 0, x: -50 }}
@@ -89,7 +174,6 @@ export default function LoginPage() {
             animate="visible"
             className="space-y-10"
           >
-            {/* Logo/Icon */}
             <motion.div variants={itemVariants} className="flex items-center gap-4">
               <img
                 src="/logo.svg"
@@ -101,7 +185,6 @@ export default function LoginPage() {
               </span>
             </motion.div>
 
-            {/* Tagline */}
             <motion.div variants={itemVariants} className="space-y-6">
               <h2 className="text-6xl font-black leading-tight max-w-lg">
                 Your Retro{" "}
@@ -116,7 +199,6 @@ export default function LoginPage() {
               </p>
             </motion.div>
 
-            {/* Feature List - Product Highlights */}
             <motion.div variants={itemVariants} className="space-y-4">
               {[
                 {
@@ -152,21 +234,20 @@ export default function LoginPage() {
           </motion.div>
         </motion.div>
 
-        {/* Right Section - Login Form */}
-
+        {/* Right Section - Auth Form */}
         <motion.div
           className="flex flex-col items-center justify-center w-full lg:w-1/2 p-8 lg:p-16 min-h-screen text-white"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-        <div style={{ height: "15vh", width: "9vw", marginBottom: "-5.9vh" }}>
+          <div style={{ height: "15vh", width: "9vw", marginBottom: "-5.9vh" }}>
             <DotLottiePlayer
-                src="https://lottie.host/c3e06dfa-cc75-4bbd-a7e0-4155d5d36b6c/djKOati6RO.lottie"
-                autoplay
-                loop
+              src="https://lottie.host/c3e06dfa-cc75-4bbd-a7e0-4155d5d36b6c/djKOati6RO.lottie"
+              autoplay
+              loop
             />
-        </div>
+          </div>
 
           <motion.div
             className="w-full max-w-md p-10 rounded-3xl"
@@ -185,7 +266,6 @@ export default function LoginPage() {
               delay: 0.2,
             }}
           >
-
             {/* Form Header */}
             <motion.div
               className="flex flex-col items-center mb-10"
@@ -204,147 +284,245 @@ export default function LoginPage() {
               >
                 <Sparkles className="text-[#C90D0C]" size={32} />
               </motion.div>
-              <motion.h1 variants={itemVariants} className="text-3xl font-bold mt-4">
-                Let's Get You In
-              </motion.h1>
+              <AnimatePresence mode="wait">
+                <motion.h1
+                  key={mode}
+                  variants={itemVariants}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-3xl font-bold mt-4"
+                >
+                  {mode === "login" ? "Let's Get You In" : "Join the Arena"}
+                </motion.h1>
+              </AnimatePresence>
               <motion.p variants={itemVariants} className="text-gray-400 text-sm mt-2">
-                Ready to build something legendary?
+                {mode === "login"
+                  ? "Ready to build something legendary?"
+                  : "Create your account and start building"}
               </motion.p>
             </motion.div>
 
-            {/* Form */}
-            <motion.form
-              onSubmit={handleLogin}
-              className="space-y-5"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              {/* Username */}
-              <motion.div variants={itemVariants}>
-                <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
-                  Gamer Tag
-                </label>
-                <motion.input
-                  type="text"
-                  placeholder="Your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onFocus={() => setFocusedField("username")}
-                  onBlur={() => setFocusedField(null)}
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 text-gray-200 placeholder-gray-600 border border-white/10 outline-none transition-colors"
-                  style={{
-                    borderColor:
-                      focusedField === "username"
-                        ? "#C90D0C"
-                        : "rgba(255,255,255,0.1)",
-                    boxShadow:
-                      focusedField === "username"
-                        ? "0 0 15px rgba(201,13,12,0.3)"
-                        : "none",
-                  }}
-                  animate={{
-                    boxShadow:
-                      focusedField === "username"
-                        ? "0 0 15px rgba(201,13,12,0.3)"
-                        : "none",
-                  }}
-                  transition={{ duration: 0.2 }}
-                />
-              </motion.div>
-
-              {/* Password */}
-              <motion.div variants={itemVariants}>
-                <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
-                  Password
-                </label>
-                <motion.input
-                  type="password"
-                  placeholder="Your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField(null)}
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 text-gray-200 placeholder-gray-600 border border-white/10 outline-none transition-colors"
-                  style={{
-                    borderColor:
-                      focusedField === "password"
-                        ? "#C90D0C"
-                        : "rgba(255,255,255,0.1)",
-                    boxShadow:
-                      focusedField === "password"
-                        ? "0 0 15px rgba(201,13,12,0.3)"
-                        : "none",
-                  }}
-                  animate={{
-                    boxShadow:
-                      focusedField === "password"
-                        ? "0 0 15px rgba(201,13,12,0.3)"
-                        : "none",
-                  }}
-                  transition={{ duration: 0.2 }}
-                />
-              </motion.div>
-
-              {/* Remember & Forgot */}
+            {/* Error Message */}
+            {error && (
               <motion.div
-                variants={itemVariants}
-                className="flex justify-between items-center text-xs"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm text-center"
               >
-                <label className="flex items-center gap-2 text-gray-400 cursor-pointer hover:text-gray-300">
-                  <input type="checkbox" className="w-4 h-4 rounded border-white/20" />
-                  Keep me logged in
-                </label>
-                <a
-                  href="#"
-                  className="text-[#C90D0C] hover:text-[#ff4444] transition-colors font-semibold"
-                >
-                  Reset Pass
-                </a>
+                {error}
               </motion.div>
+            )}
 
-              {/* Submit Button */}
-              <motion.button
-                variants={itemVariants}
-                type="submit"
-                className="w-full py-3 mt-8 text-white font-bold uppercase tracking-wider rounded-lg relative overflow-hidden group"
-                style={{
-                  background: "linear-gradient(135deg, #C90D0C, #a30b0b)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
-                whileHover={{
-                  scale: 1.02,
-                }}
-                whileTap={{ scale: 0.98 }}
+            {/* Form with AnimatePresence for smooth transitions */}
+            <AnimatePresence mode="wait">
+              <motion.form
+                key={mode}
+                onSubmit={mode === "login" ? handleLogin : handleSignup}
+                className="space-y-5"
+                variants={formVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3 }}
               >
-                <motion.div
-                  className="absolute inset-0 bg-white/10"
-                  animate={{ x: ["-100%", "100%"] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                />
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  <LogIn size={18} /> Spawn In
-                </span>
-              </motion.button>
-            </motion.form>
+                {/* Full Name - Only for Signup */}
+                {mode === "signup" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
+                      Full Name
+                    </label>
+                    <motion.input
+                      type="text"
+                      placeholder="Your full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onFocus={() => setFocusedField("name")}
+                      onBlur={() => setFocusedField(null)}
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 text-gray-200 placeholder-gray-600 border border-white/10 outline-none transition-colors"
+                      style={{
+                        borderColor:
+                          focusedField === "name"
+                            ? "#C90D0C"
+                            : "rgba(255,255,255,0.1)",
+                        boxShadow:
+                          focusedField === "name"
+                            ? "0 0 15px rgba(201,13,12,0.3)"
+                            : "none",
+                      }}
+                      required
+                    />
+                  </motion.div>
+                )}
 
-            {/* Footer */}
+                {/* Username */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
+                    Gamer Tag
+                  </label>
+                  <motion.input
+                    type="text"
+                    placeholder="Your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onFocus={() => setFocusedField("username")}
+                    onBlur={() => setFocusedField(null)}
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 text-gray-200 placeholder-gray-600 border border-white/10 outline-none transition-colors"
+                    style={{
+                      borderColor:
+                        focusedField === "username"
+                          ? "#C90D0C"
+                          : "rgba(255,255,255,0.1)",
+                      boxShadow:
+                        focusedField === "username"
+                          ? "0 0 15px rgba(201,13,12,0.3)"
+                          : "none",
+                    }}
+                    required
+                  />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
+                    Password
+                  </label>
+                  <motion.input
+                    type="password"
+                    placeholder="Your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField(null)}
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 text-gray-200 placeholder-gray-600 border border-white/10 outline-none transition-colors"
+                    style={{
+                      borderColor:
+                        focusedField === "password"
+                          ? "#C90D0C"
+                          : "rgba(255,255,255,0.1)",
+                      boxShadow:
+                          focusedField === "password"
+                          ? "0 0 15px rgba(201,13,12,0.3)"
+                          : "none",
+                    }}
+                    required
+                  />
+                </div>
+
+                {/* Confirm Password - Only for Signup */}
+                {mode === "signup" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <label className="block text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">
+                      Confirm Password
+                    </label>
+                    <motion.input
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onFocus={() => setFocusedField("confirmPassword")}
+                      onBlur={() => setFocusedField(null)}
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 text-gray-200 placeholder-gray-600 border border-white/10 outline-none transition-colors"
+                      style={{
+                        borderColor:
+                          focusedField === "confirmPassword"
+                            ? "#C90D0C"
+                            : "rgba(255,255,255,0.1)",
+                        boxShadow:
+                          focusedField === "confirmPassword"
+                            ? "0 0 15px rgba(201,13,12,0.3)"
+                            : "none",
+                      }}
+                      required
+                    />
+                  </motion.div>
+                )}
+
+                {/* Remember & Forgot - Only for Login */}
+                {mode === "login" && (
+                  <motion.div
+                    className="flex justify-between items-center text-xs"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <label className="flex items-center gap-2 text-gray-400 cursor-pointer hover:text-gray-300">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-white/20"
+                      />
+                      Keep me logged in
+                    </label>
+                    <a
+                      href="#"
+                      className="text-[#C90D0C] hover:text-[#ff4444] transition-colors font-semibold"
+                    >
+                      Reset Pass
+                    </a>
+                  </motion.div>
+                )}
+
+                {/* Submit Button */}
+                <motion.button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3 mt-8 text-white font-bold uppercase tracking-wider rounded-lg relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: "linear-gradient(135deg, #C90D0C, #a30b0b)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                  }}
+                  whileHover={!isLoading ? { scale: 1.02 } : {}}
+                  whileTap={!isLoading ? { scale: 0.98 } : {}}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-white/10"
+                    animate={{ x: ["-100%", "100%"] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {mode === "login" ? (
+                      <>
+                        <LogIn size={18} /> {isLoading ? "Loading..." : "Spawn In"}
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={18} /> {isLoading ? "Creating..." : "Create Account"}
+                      </>
+                    )}
+                  </span>
+                </motion.button>
+              </motion.form>
+            </AnimatePresence>
+
+            {/* Footer - Toggle between Login/Signup */}
             <motion.p
               variants={itemVariants}
               className="mt-8 text-center text-xs text-gray-500"
             >
-              New to the arena?{" "}
-              <motion.a
-                href="#"
+              {mode === "login" ? "New to the arena? " : "Already have an account? "}
+              <motion.button
+                onClick={toggleMode}
                 className="text-[#C90D0C] hover:text-[#ff4444] font-bold transition-colors"
                 whileHover={{ x: 2 }}
+                type="button"
               >
-                Create Your Account
-              </motion.a>
+                {mode === "login" ? "Create Your Account" : "Sign In"}
+              </motion.button>
             </motion.p>
           </motion.div>
         </motion.div>

@@ -1,19 +1,16 @@
 "use client";
-import React, { useState, useRef, useEffect, Suspense } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
   Home,
   Gamepad2,
   BrainCircuit,
   Compass,
-  Zap,
   X,
   Menu,
   Send,
   Sparkles,
-  Gamepad2 as GamepadIcon,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 
 const CHARACTERS = [
   {
@@ -60,7 +57,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// ✅ GPU-OPTIMIZED: Fixed character wheel alignment
+// ✅ Character Wheel Component
 interface CharacterWheelProps {
   selectedId: string;
   onSelect: (characterId: string) => void;
@@ -68,7 +65,6 @@ interface CharacterWheelProps {
 
 export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) => {
   const [currentIndex, setCurrentIndex] = useState(1);
-  const dragStartX = useRef(0);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     const dragDistance = info.offset.x;
@@ -95,14 +91,10 @@ export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) =>
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      {/* Main carousel container */}
       <div
         className="relative w-96 h-96 rounded-full flex items-center justify-center overflow-hidden bg-black/30"
-        style={{
-          border: `3px solid ${char.color}`,
-        }}
+        style={{ border: `3px solid ${char.color}` }}
       >
-        {/* Character card - always centered */}
         <AnimatePresence mode="wait">
           <motion.div
             key={char.id}
@@ -125,21 +117,16 @@ export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) =>
           </motion.div>
         </AnimatePresence>
 
-        {/* Invisible draggable layer */}
         <motion.div
           className="absolute inset-0 cursor-grab active:cursor-grabbing"
           drag="x"
           dragElastic={0.1}
           dragConstraints={{ left: -60, right: 60 }}
           onDragEnd={handleDragEnd}
-          style={{
-            touchAction: "pan-y",
-            zIndex: 50,
-          }}
+          style={{ touchAction: "pan-y", zIndex: 50 }}
         />
       </div>
 
-      {/* Character info - static text */}
       <AnimatePresence mode="wait">
         <motion.div
           key={char.id}
@@ -156,7 +143,6 @@ export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) =>
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation dots */}
       <div className="flex justify-center gap-4 mt-10">
         {CHARACTERS.map((c, i) => (
           <motion.button
@@ -175,7 +161,6 @@ export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) =>
         ))}
       </div>
 
-      {/* Drag hint */}
       <motion.div
         className="text-gray-400 text-xs mt-6 flex items-center justify-center gap-2 h-5"
         animate={{ opacity: [0.5, 1, 0.5] }}
@@ -187,9 +172,8 @@ export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) =>
   );
 };
 
-
-// ✅ GPU-OPTIMIZED: Simple avatar
-const MiniAvatar = ({ characterId }: any) => {
+// ✅ Mini Avatar Component
+const MiniAvatar = ({ characterId }: { characterId: string }) => {
   const char = CHARACTERS.find((c) => c.id === characterId);
   if (!char) return null;
 
@@ -201,9 +185,6 @@ const MiniAvatar = ({ characterId }: any) => {
         background: `linear-gradient(135deg, ${char.color}, ${char.color}dd)`,
         border: `2px solid ${char.color}`,
         willChange: "transform",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
       }}
       whileHover={{ scale: 1.1 }}
     >
@@ -218,7 +199,7 @@ const MiniAvatar = ({ characterId }: any) => {
   );
 };
 
-// Main Component
+// ✅ Main Component (Bug-Free)
 export default function StarcadeLayout() {
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
@@ -234,6 +215,8 @@ export default function StarcadeLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState("Titan");
   const [conversationStarted, setConversationStarted] = useState(false);
+  const [savingGame, setSavingGame] = useState(false);
+  const [gameTitle, setGameTitle] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const BACKEND = "http://127.0.0.1:8000";
@@ -247,10 +230,12 @@ export default function StarcadeLayout() {
     return res.json();
   }
 
+  // Auto-scroll to latest message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Mobile responsiveness
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
@@ -260,6 +245,14 @@ export default function StarcadeLayout() {
       return () => window.removeEventListener("resize", handleResize);
     }
   }, []);
+
+  // Clear notification after 3 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   async function handleSend() {
     if (!input.trim() || !selectedCharacter) return;
@@ -292,6 +285,7 @@ export default function StarcadeLayout() {
       }
       handleBackendResponse(response);
     } catch (err) {
+      console.error("Send error:", err);
       setMessages((prev) => [
         ...prev,
         { from: "ai", text: "⚠️ Connection error. Try again soon." },
@@ -309,12 +303,17 @@ export default function StarcadeLayout() {
     setShowModal(false);
     setLoading(true);
 
-    const response = await postJSON("/api/resume", {
-      session_id: sessionId,
-      answers: formattedAnswers,
-    });
-    handleBackendResponse(response);
-    setLoading(false);
+    try {
+      const response = await postJSON("/api/resume", {
+        session_id: sessionId,
+        answers: formattedAnswers,
+      });
+      handleBackendResponse(response);
+    } catch (err) {
+      console.error("Modal submit error:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleBackendResponse(res: any) {
@@ -338,6 +337,69 @@ export default function StarcadeLayout() {
     setAnswers((prev) => ({ ...prev, [question]: value }));
   };
 
+  // ✅ FIXED: Safe localStorage handling
+  async function handleSaveGame() {
+    if (!gameHTML) {
+      setNotification("❌ No game to save");
+      return;
+    }
+
+    setSavingGame(true);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setNotification("❌ Please log in to save games");
+        setSavingGame(false);
+        return;
+      }
+
+      let user = { name: "Creator" };
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          user = JSON.parse(userStr);
+        }
+      } catch (parseError) {
+        console.warn("⚠️ Could not parse user from localStorage, using fallback");
+      }
+
+      const title =
+        gameTitle.trim() ||
+        `Game by ${user.name} - ${new Date().toLocaleString()}`;
+
+      const response = await fetch("/api/games/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          html: gameHTML,
+          status: "PRIVATE",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNotification(`✅ ${data.message}`);
+        setGameTitle("");
+        console.log("✅ Game saved:", data.game);
+      } else {
+        setNotification(`❌ ${data.message || "Failed to save game"}`);
+        console.error("❌ Save failed:", data);
+      }
+    } catch (error) {
+      console.error("❌ Save error:", error);
+      setNotification("❌ Failed to save game. Please try again.");
+    } finally {
+      setSavingGame(false);
+    }
+  }
+
   const menuItems = [
     { label: "Home", icon: Home },
     { label: "My Games", icon: Gamepad2 },
@@ -353,7 +415,7 @@ export default function StarcadeLayout() {
       transition={{ duration: 0.6 }}
       style={{ willChange: "auto" }}
     >
-      {/* ✅ MINIMAL Background - No heavy blur */}
+      {/* BACKGROUND GRADIENTS */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ willChange: "auto" }}>
         <motion.div
           className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-2xl"
@@ -375,13 +437,10 @@ export default function StarcadeLayout() {
         />
       </div>
 
-      {/* === NAVBAR === */}
+      {/* NAVBAR */}
       <motion.nav
         className="relative z-50 backdrop-blur-sm bg-gradient-to-r from-[var(--color-primary)] via-[#a30b0b] to-[var(--color-primary)]"
-        style={{
-          borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-          willChange: "transform",
-        }}
+        style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
@@ -417,7 +476,7 @@ export default function StarcadeLayout() {
         </div>
       </motion.nav>
 
-      {/* === MAIN LAYOUT === */}
+      {/* MAIN LAYOUT */}
       <div className="flex flex-1 overflow-hidden relative z-10">
         {/* SIDEBAR */}
         <AnimatePresence>
@@ -429,10 +488,7 @@ export default function StarcadeLayout() {
               exit={{ x: -300, opacity: 0 }}
               transition={{ type: "spring", stiffness: 100, damping: 25 }}
               className="fixed md:static z-40 top-0 left-0 h-full w-2/3 sm:w-1/3 md:w-1/6 backdrop-blur-sm bg-black/40 p-6 flex flex-col gap-4 text-gray-300"
-              style={{
-                borderRight: "1px solid rgba(255, 255, 255, 0.1)",
-                willChange: "transform",
-              }}
+              style={{ borderRight: "1px solid rgba(255, 255, 255, 0.1)" }}
             >
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
@@ -455,7 +511,7 @@ export default function StarcadeLayout() {
                 </div>
 
                 <ul className="space-y-2">
-                  {menuItems.map(({ label, icon: Icon }, i) => (
+                  {menuItems.map(({ label, icon: Icon }) => (
                     <motion.li key={label} className="relative group">
                       <motion.button
                         className="w-full flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all relative overflow-hidden"
@@ -474,7 +530,7 @@ export default function StarcadeLayout() {
           )}
         </AnimatePresence>
 
-        {/* MAIN CONTENT AREA */}
+        {/* MAIN CONTENT */}
         <div className="flex-1 flex flex-col relative">
           {/* GAME PREVIEW */}
           <AnimatePresence>
@@ -485,8 +541,7 @@ export default function StarcadeLayout() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ type: "spring", stiffness: 100, damping: 25 }}
-                className="flex-1 flex items-center justify-center backdrop-blur-sm bg-black/20 border-b border-white/10 relative overflow-hidden"
-                style={{ willChange: "auto" }}
+                className="flex-1 flex flex-col items-center justify-center backdrop-blur-sm bg-black/20 border-b border-white/10 relative overflow-hidden p-6"
               >
                 {loading ? (
                   <div className="flex flex-col items-center gap-6">
@@ -497,28 +552,64 @@ export default function StarcadeLayout() {
                   </div>
                 ) : gameHTML ? (
                   <motion.div
-                    className="relative"
+                    className="relative flex flex-col items-center gap-4"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: "spring", damping: 20 }}
-                    style={{ willChange: "transform" }}
                   >
                     <iframe
                       srcDoc={gameHTML}
                       className="w-[90vw] md:w-[800px] h-[60vh] md:h-[600px] rounded-lg shadow-2xl"
                       title="StarCade Game Preview"
-                      style={{
-                        border: `2px solid var(--color-primary)`,
-                      }}
+                      style={{ border: `2px solid var(--color-primary)` }}
                     />
+
+                    <motion.button
+                      onClick={handleSaveGame}
+                      className="relative px-8 py-4 font-bold uppercase rounded-xl text-white overflow-hidden flex items-center gap-3 flex-shrink-0"
+                      style={{
+                        background: `linear-gradient(135deg, var(--color-primary), #a30b0b)`,
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        willChange: "transform",
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      disabled={!gameHTML}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-white/10"
+                        animate={{ x: ["-100%", "100%"] }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      />
+                      <span className="relative z-10 flex items-center gap-2">
+                        {savingGame ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity }}
+                              style={{ willChange: "transform" }}
+                            >
+                              <Sparkles size={18} />
+                            </motion.div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Gamepad2 size={18} />
+                            Save to Library
+                          </>
+                        )}
+                      </span>
+                    </motion.button>
                   </motion.div>
                 ) : (
                   <motion.div
-                    className="relative backdrop-blur-sm bg-black/40 w-[90vw] md:w-[800px] h-[60vh] md:h-[600px] rounded-2xl flex flex-col items-center justify-center text-gray-400 text-sm md:text-base overflow-hidden cursor-pointer"
-                    style={{
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      willChange: "auto",
-                    }}
+                    className="relative backdrop-blur-sm bg-black/40 w-[90vw] md:w-[800px] h-[60vh] md:h-[600px] rounded-2xl flex flex-col items-center justify-center text-gray-400 text-sm md:text-base overflow-hidden"
+                    style={{ border: "1px solid rgba(255, 255, 255, 0.1)" }}
                     whileHover={{ scale: 1.01 }}
                   >
                     <motion.div
@@ -526,7 +617,7 @@ export default function StarcadeLayout() {
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 3, repeat: Infinity }}
                     >
-                      <GamepadIcon size={64} className="text-[var(--color-primary)]" />
+                      <Gamepad2 size={64} className="text-[var(--color-primary)]" />
                       <div className="text-center">
                         <p className="text-xl mb-2">🎮 Your game will appear here</p>
                         <p className="text-xs text-gray-500">
@@ -540,7 +631,7 @@ export default function StarcadeLayout() {
             )}
           </AnimatePresence>
 
-          {/* CENTER WELCOME SCREEN */}
+          {/* WELCOME SCREEN */}
           <AnimatePresence>
             {!conversationStarted && (
               <motion.div
@@ -551,7 +642,6 @@ export default function StarcadeLayout() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                {/* Centered STARCADE AI with red-black gradient */}
                 <motion.div
                   className="absolute top-20 text-center z-20"
                   initial={{ y: -50, opacity: 0 }}
@@ -622,7 +712,6 @@ export default function StarcadeLayout() {
                 : "w-full max-w-3xl mx-auto"
             } backdrop-blur-sm bg-black/40 relative z-10`}
             transition={{ type: "spring", stiffness: 100, damping: 25 }}
-            style={{ willChange: "auto" }}
           >
             <AnimatePresence>
               {conversationStarted && messages.length > 0 && (
@@ -632,7 +721,6 @@ export default function StarcadeLayout() {
                   animate={{ height: "220px", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   className="relative overflow-y-auto p-6 space-y-4"
-                  style={{ willChange: "auto" }}
                 >
                   {messages.map((m, i) => (
                     <motion.div
@@ -645,7 +733,6 @@ export default function StarcadeLayout() {
                       className={`max-w-[85%] ${
                         m.from === "ai" ? "self-start" : "self-end ml-auto"
                       }`}
-                      style={{ willChange: "transform" }}
                     >
                       <motion.div
                         className={`p-4 rounded-2xl break-words backdrop-blur-sm text-sm leading-relaxed shadow-lg ${
@@ -661,7 +748,6 @@ export default function StarcadeLayout() {
                                   (c) => c.id === selectedCharacter
                                 )?.color
                           }`,
-                          willChange: "auto",
                         }}
                         whileHover={{ scale: 1.02, y: -2 }}
                       >
@@ -674,7 +760,7 @@ export default function StarcadeLayout() {
               )}
             </AnimatePresence>
 
-            <motion.div layout className="relative p-6 flex items-center gap-4" style={{ willChange: "auto" }}>
+            <motion.div layout className="relative p-6 flex items-center gap-4">
               <AnimatePresence>
                 {conversationStarted && (
                   <motion.div
@@ -683,14 +769,13 @@ export default function StarcadeLayout() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: -30, scale: 0 }}
                     transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                    style={{ willChange: "transform" }}
                   >
                     <MiniAvatar characterId={selectedCharacter} />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <motion.div className="flex-1 relative" layout style={{ willChange: "auto" }}>
+              <motion.div className="flex-1 relative" layout>
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -736,7 +821,6 @@ export default function StarcadeLayout() {
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity }}
-                    style={{ willChange: "transform" }}
                   >
                     <Sparkles size={20} className="text-white" />
                   </motion.div>
@@ -749,7 +833,7 @@ export default function StarcadeLayout() {
         </div>
       </div>
 
-      {/* === MODAL === */}
+      {/* MODAL */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -757,7 +841,6 @@ export default function StarcadeLayout() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ willChange: "auto" }}
           >
             <motion.div
               className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden backdrop-blur-sm bg-black/60 rounded-3xl shadow-2xl"
@@ -813,10 +896,7 @@ export default function StarcadeLayout() {
                               value={opt}
                               checked={answers[q.question] === opt}
                               onChange={(e) =>
-                                handleAnswerChange(
-                                  q.question,
-                                  e.target.value
-                                )
+                                handleAnswerChange(q.question, e.target.value)
                               }
                               className="w-5 h-5 accent-[var(--color-primary)]"
                             />
@@ -861,6 +941,24 @@ export default function StarcadeLayout() {
                 </motion.button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* NOTIFICATION TOAST */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            className="fixed top-8 right-8 backdrop-blur-sm bg-black/80 text-white px-6 py-4 rounded-xl shadow-2xl z-50 max-w-sm"
+            style={{
+              border: "1px solid rgba(201, 13, 12, 0.5)",
+            }}
+            initial={{ opacity: 0, y: -20, x: 50 }}
+            animate={{ opacity: 1, y: 0, x: 0 }}
+            exit={{ opacity: 0, y: -20, x: 50 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+          >
+            <p className="text-sm">{notification}</p>
           </motion.div>
         )}
       </AnimatePresence>
