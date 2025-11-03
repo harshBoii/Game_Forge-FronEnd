@@ -754,80 +754,85 @@ export default function StarcadeLayout() {
           </AnimatePresence>
 
           {/* WELCOME SCREEN */}
-          <AnimatePresence>
-            {!conversationStarted && (
-              <motion.div
-                layout
-                className="flex-1 flex flex-col items-center justify-center p-8 backdrop-blur-sm bg-black/20 relative overflow-hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <motion.div
-                  className="absolute top-20 text-center z-20"
-                  initial={{ y: -50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
-                >
-                  <motion.h2
-                    className="text-6xl md:text-8xl font-black tracking-tighter mb-2"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(135deg, #C90D0C 0%, #000000 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    STARCADE
-                  </motion.h2>
-                  <motion.p className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C90D0C] to-red-700">
-                    AI
-                  </motion.p>
-                </motion.div>
+{/* WELCOME SCREEN */}
+<AnimatePresence>
+  {!conversationStarted && (
+    <motion.div
+      layout
+      className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 backdrop-blur-sm bg-black/20 relative overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Title Section - Changed from absolute to relative positioning */}
+      <motion.div
+        className="text-center z-20 mb-8 md:mb-12 lg:mb-16"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
+      >
+        <motion.h2
+          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-2"
+          style={{
+            backgroundImage:
+              "linear-gradient(135deg, #C90D0C 0%, #000000 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
+          STARCADE
+        </motion.h2>
+        <motion.p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C90D0C] to-red-700">
+          AI
+        </motion.p>
+      </motion.div>
 
-                <motion.div
-                  className="text-center mb-8 z-10 max-w-3xl mt-32"
-                  initial={{ y: -30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
-                >
-                  <motion.div
-                    className="inline-flex items-center gap-3 mb-6 px-6 py-3 backdrop-blur-sm bg-white/10 rounded-full"
-                    style={{
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      willChange: "auto",
-                    }}
-                  >
-                    <Sparkles
-                      className="text-[var(--color-primary)]"
-                      size={20}
-                    />
-                    <span className="text-sm text-gray-300">
-                      AI-Powered Game Creation
-                    </span>
-                  </motion.div>
+      {/* Description Section */}
+      <motion.div
+        className="text-center mb-8 md:mb-12 z-10 max-w-3xl px-4"
+        initial={{ y: -30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
+      >
+        <motion.div
+          className="inline-flex items-center gap-2 md:gap-3 mb-4 md:mb-6 px-4 md:px-6 py-2 md:py-3 backdrop-blur-sm bg-white/10 rounded-full"
+          style={{
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            willChange: "auto",
+          }}
+        >
+          <Sparkles
+            className="text-[var(--color-primary)]"
+            size={20}
+          />
+          <span className="text-xs sm:text-sm text-gray-300">
+            AI-Powered Game Creation
+          </span>
+        </motion.div>
 
-                  <motion.p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
-                    Choose your AI companion and bring your game ideas to life
-                  </motion.p>
-                </motion.div>
+        <motion.p className="text-gray-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto px-4">
+          Choose your AI companion and bring your game ideas to life
+        </motion.p>
+      </motion.div>
 
-                <motion.div
-                  className="mb-20 z-10 w-full"
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
-                >
-                  <CharacterWheel
-                    selectedId={selectedCharacter}
-                    onSelect={setSelectedCharacter}
-                  />
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+      {/* Character Wheel */}
+      <motion.div
+        className="mb-8 md:mb-12 lg:mb-20 z-10 w-full"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
+      >
+        <CharacterWheel
+          selectedId={selectedCharacter}
+          onSelect={setSelectedCharacter}
+        />
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 
           {/* CHAT SECTION (Rest of the code remains the same) */}
           <motion.div
