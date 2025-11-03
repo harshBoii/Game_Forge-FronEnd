@@ -943,7 +943,7 @@ export default function StarcadeLayout() {
       onClick={async () => {
         setCheckingStatus(true);
         try {
-          const response = await fetch("/", {
+          const response = await fetch("https://game-forge-backend.onrender.com/", {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
