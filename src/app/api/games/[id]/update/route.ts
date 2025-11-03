@@ -4,9 +4,11 @@ import { verifyToken } from "@/app/lib/jwt";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params in Next.js 15+
+    const params = await context.params;
     console.log("✏️ Update game request received for:", params.id);
 
     const authHeader = req.headers.get("authorization");
