@@ -231,7 +231,7 @@ export default function StarcadeLayout() {
 
   // ✅ Menu items with routes
   const menuItems = [
-    { label: "AI Builder", icon: BrainCircuit, path: "/" },
+    { label: "AI Builder", icon: BrainCircuit, path: "/dashboard" },
     { label: "My Games", icon: Gamepad2, path: "/games" },
     { label: "Explore", icon: Compass, path: "/explore" },
   ];
@@ -288,7 +288,7 @@ export default function StarcadeLayout() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    router.push("/auth");
+    router.push("/");
   };
 
   async function handleSend() {
@@ -755,25 +755,29 @@ export default function StarcadeLayout() {
 
           {/* WELCOME SCREEN */}
 {/* WELCOME SCREEN */}
+{/* WELCOME SCREEN */}
 <AnimatePresence>
   {!conversationStarted && (
     <motion.div
       layout
-      className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 backdrop-blur-sm bg-black/20 relative overflow-hidden"
+      className="flex-1 flex flex-col items-center p-4 md:p-8 backdrop-blur-sm bg-black/20 relative overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Title Section - Changed from absolute to relative positioning */}
+      {/* Spacer for vertical centering when content is short */}
+      <div className="flex-grow min-h-[2rem]" />
+
+      {/* Title Section */}
       <motion.div
-        className="text-center z-20 mb-8 md:mb-12 lg:mb-16"
+        className="text-center z-20 mb-6 md:mb-8 lg:mb-12 flex-shrink-0"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
       >
         <motion.h2
-          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-2"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tighter mb-2"
           style={{
             backgroundImage:
               "linear-gradient(135deg, #C90D0C 0%, #000000 100%)",
@@ -784,42 +788,42 @@ export default function StarcadeLayout() {
         >
           STARCADE
         </motion.h2>
-        <motion.p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C90D0C] to-red-700">
+        <motion.p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C90D0C] to-red-700">
           AI
         </motion.p>
       </motion.div>
 
       {/* Description Section */}
       <motion.div
-        className="text-center mb-8 md:mb-12 z-10 max-w-3xl px-4"
+        className="text-center mb-6 md:mb-8 lg:mb-10 z-10 max-w-3xl px-4 flex-shrink-0"
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
       >
         <motion.div
-          className="inline-flex items-center gap-2 md:gap-3 mb-4 md:mb-6 px-4 md:px-6 py-2 md:py-3 backdrop-blur-sm bg-white/10 rounded-full"
+          className="inline-flex items-center gap-2 md:gap-3 mb-3 md:mb-4 lg:mb-6 px-3 md:px-4 lg:px-6 py-2 md:py-2.5 lg:py-3 backdrop-blur-sm bg-white/10 rounded-full"
           style={{
             border: "1px solid rgba(255, 255, 255, 0.2)",
             willChange: "auto",
           }}
         >
           <Sparkles
-            className="text-[var(--color-primary)]"
-            size={20}
+            className="text-[var(--color-primary)] flex-shrink-0"
+            size={18}
           />
-          <span className="text-xs sm:text-sm text-gray-300">
+          <span className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
             AI-Powered Game Creation
           </span>
         </motion.div>
 
-        <motion.p className="text-gray-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto px-4">
+        <motion.p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto">
           Choose your AI companion and bring your game ideas to life
         </motion.p>
       </motion.div>
 
       {/* Character Wheel */}
       <motion.div
-        className="mb-8 md:mb-12 lg:mb-20 z-10 w-full"
+        className="mb-6 md:mb-8 lg:mb-12 z-10 w-full flex-shrink-0"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
@@ -829,6 +833,9 @@ export default function StarcadeLayout() {
           onSelect={setSelectedCharacter}
         />
       </motion.div>
+
+      {/* Bottom spacer for centering */}
+      <div className="flex-grow min-h-[2rem]" />
     </motion.div>
   )}
 </AnimatePresence>
