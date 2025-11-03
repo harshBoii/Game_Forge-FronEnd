@@ -10,7 +10,10 @@ import {
   Menu,
   Send,
   Sparkles,
+  LogOut,
+  User,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const CHARACTERS = [
   {
@@ -63,7 +66,10 @@ interface CharacterWheelProps {
   onSelect: (characterId: string) => void;
 }
 
-export const CharacterWheel = ({ selectedId, onSelect }: CharacterWheelProps) => {
+export const CharacterWheel = ({
+  selectedId,
+  onSelect,
+}: CharacterWheelProps) => {
   const [currentIndex, setCurrentIndex] = useState(1);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
@@ -199,8 +205,9 @@ const MiniAvatar = ({ characterId }: { characterId: string }) => {
   );
 };
 
-// ✅ Main Component (Bug-Free)
+// ✅ Main Component with Navigation
 export default function StarcadeLayout() {
+  const router = useRouter();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -217,9 +224,17 @@ export default function StarcadeLayout() {
   const [conversationStarted, setConversationStarted] = useState(false);
   const [savingGame, setSavingGame] = useState(false);
   const [gameTitle, setGameTitle] = useState("");
+  const [user, setUser] = useState<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const BACKEND = "http://127.0.0.1:8000";
+  const BACKEND = "https://game-forge-backend.onrender.com";
+
+  // ✅ Menu items with routes
+  const menuItems = [
+    { label: "AI Builder", icon: BrainCircuit, path: "/" },
+    { label: "My Games", icon: Gamepad2, path: "/games" },
+    { label: "Explore", icon: Compass, path: "/explore" },
+  ];
 
   async function postJSON(url: string, data: any) {
     const res = await fetch(`${BACKEND}${url}`, {
@@ -235,16 +250,31 @@ export default function StarcadeLayout() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Mobile responsiveness
+  // Mobile responsiveness & load user
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
       setIsMobile(window.innerWidth < 768);
       const handleResize = () => setIsMobile(window.innerWidth < 768);
       window.addEventListener("resize", handleResize);
+
+      // ✅ Load user from localStorage
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          setUser(JSON.parse(userStr));
+        } else {
+          // Redirect to login if no user
+          router.push("/auth");
+        }
+      } catch (error) {
+        console.warn("Failed to parse user from localStorage");
+        router.push("/auth");
+      }
+
       return () => window.removeEventListener("resize", handleResize);
     }
-  }, []);
+  }, [router]);
 
   // Clear notification after 3 seconds
   useEffect(() => {
@@ -253,6 +283,13 @@ export default function StarcadeLayout() {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  // ✅ Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/auth");
+  };
 
   async function handleSend() {
     if (!input.trim() || !selectedCharacter) return;
@@ -337,7 +374,6 @@ export default function StarcadeLayout() {
     setAnswers((prev) => ({ ...prev, [question]: value }));
   };
 
-  // ✅ FIXED: Safe localStorage handling
   async function handleSaveGame() {
     if (!gameHTML) {
       setNotification("❌ No game to save");
@@ -355,25 +391,28 @@ export default function StarcadeLayout() {
         return;
       }
 
-      let user = { name: "Creator" };
+      let userName = "Creator";
       try {
         const userStr = localStorage.getItem("user");
         if (userStr) {
-          user = JSON.parse(userStr);
+          const parsedUser = JSON.parse(userStr);
+          userName = parsedUser.name;
         }
       } catch (parseError) {
-        console.warn("⚠️ Could not parse user from localStorage, using fallback");
+        console.warn(
+          "⚠️ Could not parse user from localStorage, using fallback"
+        );
       }
 
       const title =
         gameTitle.trim() ||
-        `Game by ${user.name} - ${new Date().toLocaleString()}`;
+        `Game by ${userName} - ${new Date().toLocaleString()}`;
 
       const response = await fetch("/api/games/save", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title,
@@ -400,13 +439,6 @@ export default function StarcadeLayout() {
     }
   }
 
-  const menuItems = [
-    { label: "Home", icon: Home },
-    { label: "My Games", icon: Gamepad2 },
-    { label: "AI Builder", icon: BrainCircuit },
-    { label: "Explore", icon: Compass },
-  ];
-
   return (
     <motion.div
       className="flex flex-col h-screen bg-gradient-to-br from-[#0a0a0a] via-[#111] to-[#0a0a0a] text-white overflow-hidden relative"
@@ -416,7 +448,10 @@ export default function StarcadeLayout() {
       style={{ willChange: "auto" }}
     >
       {/* BACKGROUND GRADIENTS */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ willChange: "auto" }}>
+      <div
+        className="fixed inset-0 overflow-hidden pointer-events-none"
+        style={{ willChange: "auto" }}
+      >
         <motion.div
           className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-2xl"
           animate={{
@@ -437,7 +472,7 @@ export default function StarcadeLayout() {
         />
       </div>
 
-      {/* NAVBAR */}
+      {/* ✅ NAVBAR WITH USER INFO */}
       <motion.nav
         className="relative z-50 backdrop-blur-sm bg-gradient-to-r from-[var(--color-primary)] via-[#a30b0b] to-[var(--color-primary)]"
         style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}
@@ -453,7 +488,11 @@ export default function StarcadeLayout() {
             >
               <Menu size={24} />
             </button>
-            <motion.h1 className="text-2xl md:text-3xl font-bold tracking-widest flex items-center gap-3" whileHover={{ scale: 1.02 }}>
+            <motion.h1
+              className="text-2xl md:text-3xl font-bold tracking-widest flex items-center gap-3 cursor-pointer"
+              whileHover={{ scale: 1.02 }}
+              onClick={() => router.push("/")}
+            >
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-200">
                 STARCADE
               </span>
@@ -461,24 +500,43 @@ export default function StarcadeLayout() {
             </motion.h1>
           </div>
 
-          <div className="hidden md:flex gap-6 text-sm uppercase">
-            {["Docs", "Studio", "Support"].map((link) => (
-              <motion.a
-                key={link}
-                href="#"
-                className="relative text-gray-200 cursor-pointer px-4 py-2 rounded-lg"
-                whileHover={{ scale: 1.05 }}
+          {/* ✅ User Profile Section */}
+          <div className="flex items-center gap-4">
+            {user && (
+              <motion.div
+                className="hidden md:flex items-center gap-3 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
               >
-                <span className="relative z-10">{link}</span>
-              </motion.a>
-            ))}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-purple-600 flex items-center justify-center">
+                  <User size={16} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold">{user.name}</span>
+                  <span className="text-xs text-gray-400">@{user.username}</span>
+                </div>
+              </motion.div>
+            )}
+
+            <motion.button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm hover:bg-red-500/20 transition-colors border border-white/20"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <LogOut size={18} />
+              <span className="hidden sm:inline text-sm font-medium">
+                Logout
+              </span>
+            </motion.button>
           </div>
         </div>
       </motion.nav>
 
       {/* MAIN LAYOUT */}
       <div className="flex flex-1 overflow-hidden relative z-10">
-        {/* SIDEBAR */}
+        {/* ✅ SIDEBAR WITH ROUTING */}
         <AnimatePresence>
           {isClient && (sidebarOpen || !isMobile) && (
             <motion.aside
@@ -487,15 +545,19 @@ export default function StarcadeLayout() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -300, opacity: 0 }}
               transition={{ type: "spring", stiffness: 100, damping: 25 }}
-              className="fixed md:static z-40 top-0 left-0 h-full w-2/3 sm:w-1/3 md:w-1/6 backdrop-blur-sm bg-black/40 p-6 flex flex-col gap-4 text-gray-300"
+              className="fixed md:static z-40 top-0 left-0 h-full w-2/3 sm:w-1/3 md:w-64 backdrop-blur-sm bg-black/40 p-6 flex flex-col gap-4 text-gray-300"
               style={{ borderRight: "1px solid rgba(255, 255, 255, 0.1)" }}
             >
-              <div className="relative z-10">
+              <div className="relative z-10 flex-1">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg text-[var(--color-primary)] tracking-wide font-bold flex items-center gap-2">
                     <motion.div
                       animate={{ rotate: [0, 360] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                       style={{ willChange: "transform" }}
                     >
                       <Sparkles size={16} />
@@ -510,27 +572,78 @@ export default function StarcadeLayout() {
                   </button>
                 </div>
 
+                {/* ✅ Navigation Menu with Routes */}
                 <ul className="space-y-2">
-                  {menuItems.map(({ label, icon: Icon }) => (
-                    <motion.li key={label} className="relative group">
-                      <motion.button
-                        className="w-full flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all relative overflow-hidden"
-                        whileHover={{ scale: 1.03, x: 4 }}
-                        whileTap={{ scale: 0.98 }}
-                        style={{ willChange: "transform" }}
-                      >
-                        <Icon className="text-[var(--color-primary)]" size={22} />
-                        <span className="font-medium">{label}</span>
-                      </motion.button>
-                    </motion.li>
-                  ))}
+                  {menuItems.map(({ label, icon: Icon, path }) => {
+                    const isActive = router ? false : false; // You can implement active state detection
+                    return (
+                      <motion.li key={label} className="relative group">
+                        <motion.button
+                          onClick={() => {
+                            router.push(path);
+                            if (isMobile) setSidebarOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all relative overflow-hidden ${
+                            isActive
+                              ? "bg-[var(--color-primary)]/20 border border-[var(--color-primary)]/50"
+                              : "hover:bg-white/5"
+                          }`}
+                          whileHover={{ scale: 1.03, x: 4 }}
+                          whileTap={{ scale: 0.98 }}
+                          style={{ willChange: "transform" }}
+                        >
+                          <Icon
+                            className={
+                              isActive
+                                ? "text-[var(--color-primary)]"
+                                : "text-gray-400 group-hover:text-[var(--color-primary)]"
+                            }
+                            size={22}
+                          />
+                          <span
+                            className={`font-medium ${
+                              isActive
+                                ? "text-white"
+                                : "group-hover:text-white"
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </motion.button>
+                      </motion.li>
+                    );
+                  })}
                 </ul>
               </div>
+
+              {/* ✅ User Info in Sidebar (Mobile) */}
+              {user && isMobile && (
+                <motion.div
+                  className="mt-auto pt-4 border-t border-white/10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <User size={18} />
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-bold truncate">
+                        {user.name}
+                      </span>
+                      <span className="text-xs text-gray-400 truncate">
+                        @{user.username}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </motion.aside>
           )}
         </AnimatePresence>
 
-        {/* MAIN CONTENT */}
+        {/* MAIN CONTENT (Same as before) */}
         <div className="flex-1 flex flex-col relative">
           {/* GAME PREVIEW */}
           <AnimatePresence>
@@ -546,7 +659,11 @@ export default function StarcadeLayout() {
                 {loading ? (
                   <div className="flex flex-col items-center gap-6">
                     <LoadingSpinner />
-                    <motion.p className="text-gray-400 text-sm" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}>
+                    <motion.p
+                      className="text-gray-400 text-sm"
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
                       Crafting your game...
                     </motion.p>
                   </div>
@@ -574,7 +691,7 @@ export default function StarcadeLayout() {
                       }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      disabled={!gameHTML}
+                      disabled={!gameHTML || savingGame}
                     >
                       <motion.div
                         className="absolute inset-0 bg-white/10"
@@ -617,9 +734,14 @@ export default function StarcadeLayout() {
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 3, repeat: Infinity }}
                     >
-                      <Gamepad2 size={64} className="text-[var(--color-primary)]" />
+                      <Gamepad2
+                        size={64}
+                        className="text-[var(--color-primary)]"
+                      />
                       <div className="text-center">
-                        <p className="text-xl mb-2">🎮 Your game will appear here</p>
+                        <p className="text-xl mb-2">
+                          🎮 Your game will appear here
+                        </p>
                         <p className="text-xs text-gray-500">
                           Start chatting to generate your first game
                         </p>
@@ -651,7 +773,8 @@ export default function StarcadeLayout() {
                   <motion.h2
                     className="text-6xl md:text-8xl font-black tracking-tighter mb-2"
                     style={{
-                      backgroundImage: "linear-gradient(135deg, #C90D0C 0%, #000000 100%)",
+                      backgroundImage:
+                        "linear-gradient(135deg, #C90D0C 0%, #000000 100%)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
@@ -677,7 +800,10 @@ export default function StarcadeLayout() {
                       willChange: "auto",
                     }}
                   >
-                    <Sparkles className="text-[var(--color-primary)]" size={20} />
+                    <Sparkles
+                      className="text-[var(--color-primary)]"
+                      size={20}
+                    />
                     <span className="text-sm text-gray-300">
                       AI-Powered Game Creation
                     </span>
@@ -703,7 +829,7 @@ export default function StarcadeLayout() {
             )}
           </AnimatePresence>
 
-          {/* CHAT SECTION */}
+          {/* CHAT SECTION (Rest of the code remains the same) */}
           <motion.div
             layout
             className={`${
@@ -729,7 +855,11 @@ export default function StarcadeLayout() {
                       initial={{ opacity: 0, y: 20, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 25,
+                      }}
                       className={`max-w-[85%] ${
                         m.from === "ai" ? "self-start" : "self-end ml-auto"
                       }`}
@@ -760,7 +890,10 @@ export default function StarcadeLayout() {
               )}
             </AnimatePresence>
 
-            <motion.div layout className="relative p-6 flex items-center gap-4">
+            <motion.div
+              layout
+              className="relative p-6 flex items-center gap-4"
+            >
               <AnimatePresence>
                 {conversationStarted && (
                   <motion.div
@@ -833,7 +966,7 @@ export default function StarcadeLayout() {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL (Same as before) */}
       <AnimatePresence>
         {showModal && (
           <motion.div
