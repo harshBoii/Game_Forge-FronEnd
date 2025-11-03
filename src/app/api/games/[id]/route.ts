@@ -4,9 +4,11 @@ import { verifyToken } from "@/app/lib/jwt";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params in Next.js 15+
+    const params = await context.params;
     console.log("🎮 Fetch single game request for:", params.id);
 
     const authHeader = req.headers.get("authorization");
@@ -39,6 +41,7 @@ export async function GET(
         status: true,
         createdAt: true,
         updatedAt: true,
+        userId: true,
         user: {
           select: {
             username: true,
@@ -56,7 +59,7 @@ export async function GET(
     }
 
     // Check if user owns the game (for private games)
-    if (game.status === "PRIVATE" && game.user.username !== decoded.username) {
+    if (game.status === "PRIVATE" && game.userId !== decoded.userId) {
       console.error("❌ Unauthorized access to private game");
       return NextResponse.json(
         { message: "You don't have permission to access this game" },
