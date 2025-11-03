@@ -12,6 +12,7 @@ import {
   Sparkles,
   LogOut,
   User,
+  Activity
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -226,6 +227,8 @@ export default function StarcadeLayout() {
   const [gameTitle, setGameTitle] = useState("");
   const [user, setUser] = useState<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [backendStatus, setBackendStatus] = useState<string | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
   const BACKEND = "https://game-forge-backend.onrender.com";
 
@@ -843,138 +846,232 @@ export default function StarcadeLayout() {
 
           {/* CHAT SECTION (Rest of the code remains the same) */}
           <motion.div
-            layout
-            className={`${
-              conversationStarted
-                ? "h-auto border-t border-white/10"
-                : "w-full max-w-3xl mx-auto"
-            } backdrop-blur-sm bg-black/40 relative z-10`}
-            transition={{ type: "spring", stiffness: 100, damping: 25 }}
-          >
-            <AnimatePresence>
-              {conversationStarted && messages.length > 0 && (
-                <motion.div
-                  layout
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "220px", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="relative overflow-y-auto p-6 space-y-4"
-                >
-                  {messages.map((m, i) => (
-                    <motion.div
-                      key={i}
-                      layout
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 25,
-                      }}
-                      className={`max-w-[85%] ${
-                        m.from === "ai" ? "self-start" : "self-end ml-auto"
-                      }`}
-                    >
-                      <motion.div
-                        className={`p-4 rounded-2xl break-words backdrop-blur-sm text-sm leading-relaxed shadow-lg ${
-                          m.from === "ai"
-                            ? "bg-white/10 text-gray-200"
-                            : "bg-[var(--color-primary)] text-white"
-                        }`}
-                        style={{
-                          border: `1px solid ${
-                            m.from === "ai"
-                              ? "rgba(255, 255, 255, 0.1)"
-                              : CHARACTERS.find(
-                                  (c) => c.id === selectedCharacter
-                                )?.color
-                          }`,
-                        }}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                      >
-                        {m.text}
-                      </motion.div>
-                    </motion.div>
-                  ))}
-                  <div ref={chatEndRef} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
+  layout
+  className={`${
+    conversationStarted
+      ? "h-auto border-t border-white/10"
+      : "w-full max-w-3xl mx-auto"
+  } backdrop-blur-sm bg-black/40 relative z-10`}
+  transition={{ type: "spring", stiffness: 100, damping: 25 }}
+>
+  {/* Chat Messages Container */}
+  <AnimatePresence>
+    {conversationStarted && messages.length > 0 && (
+      <motion.div
+        layout
+        initial={{ height: 0, opacity: 0 }}
+        animate={{ 
+          height: "auto", 
+          maxHeight: "min(50vh, 400px)", 
+          opacity: 1 
+        }}
+        exit={{ height: 0, opacity: 0 }}
+        className="relative overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4"
+        style={{
+          scrollBehavior: "smooth"
+        }}
+      >
+        <div className="flex flex-col gap-3 md:gap-4">
+          {messages.map((m, i) => (
             <motion.div
+              key={i}
               layout
-              className="relative p-6 flex items-center gap-4"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 25,
+              }}
+              className={`flex ${
+                m.from === "ai" ? "justify-start" : "justify-end"
+              }`}
             >
-              <AnimatePresence>
-                {conversationStarted && (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, x: -30, scale: 0 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -30, scale: 0 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                  >
-                    <MiniAvatar characterId={selectedCharacter} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <motion.div className="flex-1 relative" layout>
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder={
-                    conversationStarted
-                      ? "Continue the conversation..."
-                      : "Describe your game idea..."
-                  }
-                  className="w-full backdrop-blur-sm bg-white/10 text-white rounded-xl px-5 py-4 pr-14 outline-none text-sm transition-all placeholder:text-gray-500"
-                  style={{
-                    border: input.trim()
-                      ? `2px solid ${
-                          CHARACTERS.find((c) => c.id === selectedCharacter)
-                            ?.color
-                        }`
-                      : "2px solid rgba(255, 255, 255, 0.1)",
-                  }}
-                  disabled={!selectedCharacter}
-                />
-              </motion.div>
-
-              <motion.button
-                onClick={handleSend}
-                className="relative w-14 h-14 font-bold uppercase rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
+              <motion.div
+                className={`max-w-[85%] md:max-w-[75%] p-3 md:p-4 rounded-2xl break-words backdrop-blur-sm text-sm leading-relaxed shadow-lg ${
+                  m.from === "ai"
+                    ? "bg-white/10 text-gray-200"
+                    : "bg-[var(--color-primary)] text-white"
+                }`}
                 style={{
-                  background: `linear-gradient(135deg, ${
-                    CHARACTERS.find((c) => c.id === selectedCharacter)?.color
-                  }, var(--color-primary))`,
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  willChange: "transform",
+                  border: `1px solid ${
+                    m.from === "ai"
+                      ? "rgba(255, 255, 255, 0.1)"
+                      : CHARACTERS.find(
+                          (c) => c.id === selectedCharacter
+                        )?.color
+                  }`,
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
                 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                disabled={loading || !selectedCharacter || !input.trim()}
+                whileHover={{ scale: 1.02, y: -2 }}
               >
-                {loading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  >
-                    <Sparkles size={20} className="text-white" />
-                  </motion.div>
-                ) : (
-                  <Send size={20} className="text-white" />
-                )}
-              </motion.button>
+                {m.text}
+              </motion.div>
             </motion.div>
-          </motion.div>
+          ))}
+        </div>
+        <div ref={chatEndRef} />
+      </motion.div>
+    )}
+  </AnimatePresence>
+
+  {/* Input Section */}
+  <motion.div
+    layout
+    className="relative p-4 md:p-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4"
+  >
+    {/* Mini Avatar (visible only when conversation started) */}
+    <AnimatePresence>
+      {conversationStarted && (
+        <motion.div
+          layout
+          initial={{ opacity: 0, x: -30, scale: 0 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: -30, scale: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="hidden sm:block flex-shrink-0"
+        >
+          <MiniAvatar characterId={selectedCharacter} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* Backend Status Check Button */}
+    <motion.button
+      onClick={async () => {
+        setCheckingStatus(true);
+        try {
+          const response = await fetch("/", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          const data = await response.json();
+          console.log("Backend status:", data);
+          setBackendStatus(data.status);
+          
+          // Show success message
+          if (data.status === "ok") {
+            console.log(data.message);
+          }
+          
+          setTimeout(() => setBackendStatus(null), 3000);
+        } catch (error) {
+          console.error("Backend error:", error);
+          setBackendStatus("error");
+          setTimeout(() => setBackendStatus(null), 3000);
+        } finally {
+          setCheckingStatus(false);
+        }
+      }}
+      className="w-full sm:w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-all relative group"
+      style={{
+        border: backendStatus === "ok" 
+          ? "2px solid #10b981" 
+          : backendStatus === "error"
+          ? "2px solid #ef4444"
+          : "1px solid rgba(255, 255, 255, 0.2)",
+      }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      disabled={checkingStatus}
+      title="Check Backend Status"
+    >
+      {/* Tooltip */}
+      <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+        {backendStatus === "ok" 
+          ? "Backend Running ✓" 
+          : backendStatus === "error"
+          ? "Backend Error ✗"
+          : "Check Status"}
+      </span>
+      
+      {checkingStatus ? (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <Activity size={18} className="text-gray-300" />
+        </motion.div>
+      ) : (
+        <Activity 
+          size={18} 
+          className={
+            backendStatus === "ok"
+              ? "text-green-400"
+              : backendStatus === "error"
+              ? "text-red-400"
+              : "text-gray-300"
+          }
+        />
+      )}
+    </motion.button>
+
+    {/* Input Field */}
+    <motion.div 
+      className="flex-1 relative min-w-0" 
+      layout
+    >
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
+        placeholder={
+          conversationStarted
+            ? "Continue the conversation..."
+            : "Describe your game idea..."
+        }
+        className="w-full backdrop-blur-sm bg-white/10 text-white rounded-xl px-4 md:px-5 py-3 md:py-4 outline-none text-sm md:text-base transition-all placeholder:text-gray-500 placeholder:text-sm"
+        style={{
+          border: input.trim()
+            ? `2px solid ${
+                CHARACTERS.find((c) => c.id === selectedCharacter)
+                  ?.color
+              }`
+            : "2px solid rgba(255, 255, 255, 0.1)",
+        }}
+        disabled={!selectedCharacter}
+      />
+    </motion.div>
+
+    {/* Send Button */}
+    <motion.button
+      onClick={handleSend}
+      className="relative w-full sm:w-14 h-12 sm:h-14 font-bold uppercase rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
+      style={{
+        background: `linear-gradient(135deg, ${
+          CHARACTERS.find((c) => c.id === selectedCharacter)?.color
+        }, var(--color-primary))`,
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        willChange: "transform",
+      }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      disabled={loading || !selectedCharacter || !input.trim()}
+    >
+      {loading ? (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <Sparkles size={20} className="text-white" />
+        </motion.div>
+      ) : (
+        <Send size={20} className="text-white" />
+      )}
+    </motion.button>
+  </motion.div>
+</motion.div>
+
+
         </div>
       </div>
 
