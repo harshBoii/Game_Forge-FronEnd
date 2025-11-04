@@ -230,7 +230,7 @@ export default function StarcadeLayout() {
   const [backendStatus, setBackendStatus] = useState<string | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
-  const BACKEND = "http://127.0.0.1:8000";
+  const BACKEND = "https://game-forge-backend.onrender.com";
 
   // ✅ Menu items with routes
   const menuItems = [
