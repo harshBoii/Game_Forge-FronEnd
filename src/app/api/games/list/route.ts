@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         title: true,
+        html: true,
+        thumbnail: true,
         status: true,
         createdAt: true,
         updatedAt: true,

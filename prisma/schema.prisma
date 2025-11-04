@@ -26,6 +26,7 @@ model Game {
   id        String     @id @default(cuid())
   title     String
   html      String     @db.Text
+  thumbnail   String?  @db.Text  // Base64 encoded image or URL
   status    GameStatus @default(PRIVATE)
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String

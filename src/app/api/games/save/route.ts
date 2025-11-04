@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, html, status } = body;
+    const { title, html, status, thumbnail } = body;
 
     console.log("🔍 Validating game data...");
     if (!title || !title.trim()) {
@@ -59,7 +59,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Max 1MB validation
     if (html.length > 1024 * 1024) {
       console.error("❌ HTML too large");
       return NextResponse.json(
@@ -68,7 +67,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate title length
     if (title.trim().length > 255) {
       console.error("❌ Title too long");
       return NextResponse.json(
@@ -85,6 +83,7 @@ export async function POST(req: NextRequest) {
       data: {
         title: title.trim(),
         html,
+        thumbnail: thumbnail || null,
         status: gameStatus,
         userId: decoded.userId,
       },
@@ -92,6 +91,7 @@ export async function POST(req: NextRequest) {
         id: true,
         title: true,
         status: true,
+        thumbnail: true,
         createdAt: true,
         user: {
           select: {

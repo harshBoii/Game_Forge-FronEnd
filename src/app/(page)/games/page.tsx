@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Play,
@@ -19,6 +19,8 @@ import {
   Gamepad2,
   Compass,
   Loader2,
+  Pencil,
+  Check,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -26,6 +28,7 @@ interface Game {
   id: string;
   title: string;
   html: string;
+  thumbnail?: string | null;
   status: "PUBLIC" | "PRIVATE";
   createdAt: string;
   updatedAt: string;
@@ -43,7 +46,11 @@ export default function GamesPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
+  const [previewGame, setPreviewGame] = useState<Game | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [editingGameId, setEditingGameId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const menuItems = [
     { label: "AI Builder", icon: BrainCircuit, path: "/" },
@@ -86,6 +93,13 @@ export default function GamesPage() {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  useEffect(() => {
+    if (editingGameId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingGameId]);
 
   async function fetchGames() {
     setLoading(true);
@@ -139,6 +153,41 @@ export default function GamesPage() {
     } catch (error) {
       console.error("Delete error:", error);
       setNotification("❌ Failed to delete game");
+    }
+  }
+
+  async function handleUpdateGameName(gameId: string, newName: string) {
+    if (!newName.trim()) {
+      setNotification("❌ Game name cannot be empty");
+      setEditingGameId(null);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/games/${gameId}/update`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title: newName.trim() }),
+      });
+
+      if (response.ok) {
+        setGames(
+          games.map((g) =>
+            g.id === gameId ? { ...g, title: newName.trim() } : g
+          )
+        );
+        setNotification("✅ Game name updated successfully");
+        setEditingGameId(null);
+      } else {
+        setNotification("❌ Failed to update game name");
+      }
+    } catch (error) {
+      console.error("Update error:", error);
+      setNotification("❌ Failed to update game name");
     }
   }
 
@@ -398,7 +447,6 @@ export default function GamesPage() {
               transition={{ delay: 0.1 }}
               className="flex flex-col md:flex-row gap-4 mb-8 items-start md:items-center justify-between"
             >
-              {/* Search */}
               <div className="relative flex-1 max-w-md w-full">
                 <Search
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
@@ -413,9 +461,7 @@ export default function GamesPage() {
                 />
               </div>
 
-              {/* Filters & View Toggle */}
               <div className="flex items-center gap-3 w-full md:w-auto">
-                {/* Status Filter */}
                 <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1 border border-white/10 flex-1 md:flex-none">
                   {["ALL", "PUBLIC", "PRIVATE"].map((status) => (
                     <motion.button
@@ -434,7 +480,6 @@ export default function GamesPage() {
                   ))}
                 </div>
 
-                {/* View Mode Toggle */}
                 <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1 border border-white/10">
                   <motion.button
                     onClick={() => setViewMode("grid")}
@@ -535,40 +580,84 @@ export default function GamesPage() {
                       }`}
                       whileHover={{ y: -4, scale: 1.02 }}
                     >
-                      {/* Game Thumbnail */}
+                      {/* Game Thumbnail with Interactive Preview */}
                       <div
                         className={`relative ${
                           viewMode === "grid"
                             ? "h-48 w-full"
                             : "w-32 h-32 flex-shrink-0"
-                        } bg-gradient-to-br from-purple-600/20 to-red-600/20 flex items-center justify-center overflow-hidden`}
+                        } bg-gradient-to-br from-purple-600/20 to-red-600/20 flex items-center justify-center overflow-hidden cursor-pointer group/thumb`}
+                        onMouseEnter={() => setPreviewGame(game)}
+                        onMouseLeave={() => setPreviewGame(null)}
                       >
-                        <motion.div
-                          className="absolute inset-0 bg-[var(--color-primary)]/10"
-                          animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.5, 0.8, 0.5],
-                          }}
-                          transition={{ duration: 3, repeat: Infinity }}
-                        />
-                        <Gamepad2 size={48} className="text-white/40 relative z-10" />
+                        {/* Thumbnail Image or Fallback */}
+                        {game.thumbnail ? (
+                          <img
+                            src={game.thumbnail}
+                            alt={game.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <>
+                            <motion.div
+                              className="absolute inset-0 bg-[var(--color-primary)]/10"
+                              animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.5, 0.8, 0.5],
+                              }}
+                              transition={{ duration: 3, repeat: Infinity }}
+                            />
+                            <Gamepad2 size={48} className="text-white/40 relative z-10" />
+                          </>
+                        )}
+
+                        {/* Hover Preview Overlay */}
+                        <AnimatePresence>
+                          {previewGame?.id === game.id && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="absolute inset-0 bg-black/90 z-20"
+                            >
+                              <iframe
+                                srcDoc={game.html}
+                                className="w-full h-full pointer-events-none"
+                                title={`Preview ${game.title}`}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                                <motion.div
+                                  initial={{ scale: 0.8 }}
+                                  animate={{ scale: 1 }}
+                                  className="bg-[var(--color-primary)] p-3 rounded-full"
+                                >
+                                  <Play size={24} className="text-white" />
+                                </motion.div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
 
                         {/* Status Badge */}
-                        <div className="absolute top-3 right-3 z-20">
+                        <div className="absolute top-3 right-3 z-30">
                           <motion.button
-                            onClick={() => toggleGameStatus(game.id, game.status)}
-                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleGameStatus(game.id, game.status);
+                            }}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm transition-all cursor-pointer ${
                               game.status === "PUBLIC"
-                                ? "bg-green-500/80 text-white"
-                                : "bg-gray-700/80 text-gray-300"
+                                ? "bg-green-500/80 text-white hover:bg-green-500"
+                                : "bg-gray-700/80 text-gray-300 hover:bg-gray-700"
                             }`}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
+                            title="Click to toggle status"
                           >
                             {game.status === "PUBLIC" ? (
-                              <Globe size={12} />
+                              <Globe size={14} />
                             ) : (
-                              <Lock size={12} />
+                              <Lock size={14} />
                             )}
                             {game.status}
                           </motion.button>
@@ -577,9 +666,60 @@ export default function GamesPage() {
 
                       {/* Game Info */}
                       <div className={`p-4 ${viewMode === "list" ? "flex-1" : ""}`}>
-                        <h3 className="text-lg font-bold mb-2 text-white group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
-                          {game.title}
-                        </h3>
+                        {/* Title with Edit Button */}
+                        <div className="flex items-center gap-2 mb-2 group/title">
+                          {editingGameId === game.id ? (
+                            <motion.div
+                              className="flex items-center gap-2 flex-1"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                            >
+                              <input
+                                ref={editInputRef}
+                                type="text"
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleUpdateGameName(game.id, editingName);
+                                  } else if (e.key === "Escape") {
+                                    setEditingGameId(null);
+                                  }
+                                }}
+                                className="flex-1 px-3 py-1 bg-white/10 border border-[var(--color-primary)] rounded-lg text-white outline-none text-sm font-medium"
+                              />
+                              <motion.button
+                                onClick={() =>
+                                  handleUpdateGameName(game.id, editingName)
+                                }
+                                className="p-1.5 text-green-400 hover:bg-green-400/20 rounded transition-colors"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                title="Save"
+                              >
+                                <Check size={16} />
+                              </motion.button>
+                            </motion.div>
+                          ) : (
+                            <>
+                              <h3 className="text-lg font-bold text-white group-hover/title:text-[var(--color-primary)] transition-colors line-clamp-1 flex-1">
+                                {game.title}
+                              </h3>
+                              <motion.button
+                                onClick={() => {
+                                  setEditingGameId(game.id);
+                                  setEditingName(game.title);
+                                }}
+                                className="opacity-0 group-hover/title:opacity-100 p-1.5 text-gray-400 hover:text-[var(--color-primary)] transition-all"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                title="Edit name"
+                              >
+                                <Pencil size={16} />
+                              </motion.button>
+                            </>
+                          )}
+                        </div>
 
                         <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
                           <Calendar size={14} />
@@ -609,6 +749,7 @@ export default function GamesPage() {
                             className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
+                            title="Delete game"
                           >
                             <Trash2 size={16} />
                           </motion.button>
@@ -644,7 +785,6 @@ export default function GamesPage() {
               transition={{ type: "spring", damping: 25 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-white/10">
                 <div className="flex items-center gap-4">
                   <Play size={24} className="text-[var(--color-primary)]" />
@@ -660,7 +800,6 @@ export default function GamesPage() {
                 </motion.button>
               </div>
 
-              {/* Game iframe */}
               <div className="p-6">
                 <iframe
                   srcDoc={playingGame.html}

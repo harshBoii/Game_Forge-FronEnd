@@ -15,7 +15,7 @@ import {
   Activity
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { captureGameThumbnail } from "../lib/thumbnailCapture";
 const CHARACTERS = [
   {
     id: "Flash",
@@ -230,7 +230,7 @@ export default function StarcadeLayout() {
   const [backendStatus, setBackendStatus] = useState<string | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
-  const BACKEND = "https://game-forge-backend.onrender.com";
+  const BACKEND = "http://127.0.0.1:8000";
 
   // ✅ Menu items with routes
   const menuItems = [
@@ -376,71 +376,72 @@ export default function StarcadeLayout() {
   const handleAnswerChange = (question: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [question]: value }));
   };
+async function handleSaveGame() {
+  if (!gameHTML) {
+    setNotification("❌ No game to save");
+    return;
+  }
 
-  async function handleSaveGame() {
-    if (!gameHTML) {
-      setNotification("❌ No game to save");
+  setSavingGame(true);
+
+  try {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setNotification("❌ Please log in to save games");
+      setSavingGame(false);
       return;
     }
 
-    setSavingGame(true);
-
+    let userName = "Creator";
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setNotification("❌ Please log in to save games");
-        setSavingGame(false);
-        return;
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const parsedUser = JSON.parse(userStr);
+        userName = parsedUser.name;
       }
-
-      let userName = "Creator";
-      try {
-        const userStr = localStorage.getItem("user");
-        if (userStr) {
-          const parsedUser = JSON.parse(userStr);
-          userName = parsedUser.name;
-        }
-      } catch (parseError) {
-        console.warn(
-          "⚠️ Could not parse user from localStorage, using fallback"
-        );
-      }
-
-      const title =
-        gameTitle.trim() ||
-        `Game by ${userName} - ${new Date().toLocaleString()}`;
-
-      const response = await fetch("/api/games/save", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title,
-          html: gameHTML,
-          status: "PRIVATE",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setNotification(`✅ ${data.message}`);
-        setGameTitle("");
-        console.log("✅ Game saved:", data.game);
-      } else {
-        setNotification(`❌ ${data.message || "Failed to save game"}`);
-        console.error("❌ Save failed:", data);
-      }
-    } catch (error) {
-      console.error("❌ Save error:", error);
-      setNotification("❌ Failed to save game. Please try again.");
-    } finally {
-      setSavingGame(false);
+    } catch (parseError) {
+      console.warn("⚠️ Could not parse user from localStorage, using fallback");
     }
+
+    const title =
+      gameTitle.trim() ||
+      `Game by ${userName} - ${new Date().toLocaleString()}`;
+
+    // Capture thumbnail
+    const thumbnail = await captureGameThumbnail(gameHTML);
+
+    const response = await fetch("/api/games/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title,
+        html: gameHTML,
+        thumbnail,
+        status: "PRIVATE",
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setNotification(`✅ ${data.message}`);
+      setGameTitle("");
+      console.log("✅ Game saved:", data.game);
+    } else {
+      setNotification(`❌ ${data.message || "Failed to save game"}`);
+      console.error("❌ Save failed:", data);
+    }
+  } catch (error) {
+    console.error("❌ Save error:", error);
+    setNotification("❌ Failed to save game. Please try again.");
+  } finally {
+    setSavingGame(false);
   }
+}
 
   return (
     <motion.div
@@ -845,13 +846,13 @@ export default function StarcadeLayout() {
 
 
           {/* CHAT SECTION (Rest of the code remains the same) */}
-          <motion.div
+<motion.div
   layout
   className={`${
     conversationStarted
-      ? "h-auto border-t border-white/10"
+      ? "h-80 border-t border-white/10"
       : "w-full max-w-3xl mx-auto"
-  } backdrop-blur-sm bg-black/40 relative z-10`}
+  } backdrop-blur-sm bg-black/40 relative z-10 flex flex-col`}
   transition={{ type: "spring", stiffness: 100, damping: 25 }}
 >
   {/* Chat Messages Container */}
@@ -859,16 +860,13 @@ export default function StarcadeLayout() {
     {conversationStarted && messages.length > 0 && (
       <motion.div
         layout
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ 
-          height: "auto", 
-          maxHeight: "min(50vh, 400px)", 
-          opacity: 1 
-        }}
-        exit={{ height: 0, opacity: 0 }}
-        className="relative overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="relative overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4 flex-1"
         style={{
-          scrollBehavior: "smooth"
+          maxHeight: "calc(100% - 5.5rem)", // leave space for input section height
+          scrollBehavior: "smooth",
         }}
       >
         <div className="flex flex-col gap-3 md:gap-4">
@@ -884,9 +882,7 @@ export default function StarcadeLayout() {
                 stiffness: 200,
                 damping: 25,
               }}
-              className={`flex ${
-                m.from === "ai" ? "justify-start" : "justify-end"
-              }`}
+              className={`flex ${m.from === "ai" ? "justify-start" : "justify-end"}`}
             >
               <motion.div
                 className={`max-w-[85%] md:max-w-[75%] p-3 md:p-4 rounded-2xl break-words backdrop-blur-sm text-sm leading-relaxed shadow-lg ${
@@ -898,9 +894,7 @@ export default function StarcadeLayout() {
                   border: `1px solid ${
                     m.from === "ai"
                       ? "rgba(255, 255, 255, 0.1)"
-                      : CHARACTERS.find(
-                          (c) => c.id === selectedCharacter
-                        )?.color
+                      : CHARACTERS.find((c) => c.id === selectedCharacter)?.color
                   }`,
                   wordBreak: "break-word",
                   overflowWrap: "break-word",
@@ -921,6 +915,7 @@ export default function StarcadeLayout() {
   <motion.div
     layout
     className="relative p-4 md:p-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4"
+    style={{ flexShrink: 0 }}
   >
     {/* Mini Avatar (visible only when conversation started) */}
     <AnimatePresence>
@@ -952,12 +947,11 @@ export default function StarcadeLayout() {
           const data = await response.json();
           console.log("Backend status:", data);
           setBackendStatus(data.status);
-          
-          // Show success message
+
           if (data.status === "ok") {
             console.log(data.message);
           }
-          
+
           setTimeout(() => setBackendStatus(null), 3000);
         } catch (error) {
           console.error("Backend error:", error);
@@ -969,26 +963,26 @@ export default function StarcadeLayout() {
       }}
       className="w-full sm:w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-all relative group"
       style={{
-        border: backendStatus === "ok" 
-          ? "2px solid #10b981" 
-          : backendStatus === "error"
-          ? "2px solid #ef4444"
-          : "1px solid rgba(255, 255, 255, 0.2)",
+        border:
+          backendStatus === "ok"
+            ? "2px solid #10b981"
+            : backendStatus === "error"
+            ? "2px solid #ef4444"
+            : "1px solid rgba(255, 255, 255, 0.2)",
       }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       disabled={checkingStatus}
       title="Check Backend Status"
     >
-      {/* Tooltip */}
       <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-        {backendStatus === "ok" 
-          ? "Backend Running ✓" 
+        {backendStatus === "ok"
+          ? "Backend Running ✓"
           : backendStatus === "error"
           ? "Backend Error ✗"
           : "Check Status"}
       </span>
-      
+
       {checkingStatus ? (
         <motion.div
           animate={{ rotate: 360 }}
@@ -997,8 +991,8 @@ export default function StarcadeLayout() {
           <Activity size={18} className="text-gray-300" />
         </motion.div>
       ) : (
-        <Activity 
-          size={18} 
+        <Activity
+          size={18}
           className={
             backendStatus === "ok"
               ? "text-green-400"
@@ -1011,10 +1005,7 @@ export default function StarcadeLayout() {
     </motion.button>
 
     {/* Input Field */}
-    <motion.div 
-      className="flex-1 relative min-w-0" 
-      layout
-    >
+    <motion.div className="flex-1 relative min-w-0" layout>
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -1033,8 +1024,7 @@ export default function StarcadeLayout() {
         style={{
           border: input.trim()
             ? `2px solid ${
-                CHARACTERS.find((c) => c.id === selectedCharacter)
-                  ?.color
+                CHARACTERS.find((c) => c.id === selectedCharacter)?.color
               }`
             : "2px solid rgba(255, 255, 255, 0.1)",
         }}
@@ -1070,6 +1060,7 @@ export default function StarcadeLayout() {
     </motion.button>
   </motion.div>
 </motion.div>
+
 
 
         </div>
